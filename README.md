@@ -1,38 +1,58 @@
-# HelloPlugin
+# 微信文章图片下载插件
 
-<!--
-## 插件开发者详阅
+这是一个用于下载微信文章图片的插件。通过简单的命令，你可以快速下载微信文章中的所有图片。
 
-### 开始
+## 功能特点
 
-此仓库是 LangBot 插件模板，您可以直接在 GitHub 仓库中点击右上角的 "Use this template" 以创建你的插件。  
-接下来按照以下步骤修改模板代码：
+- 支持通过 `/img` 命令下载微信文章中的图片
+- 自动保存图片到本地 `wechat_images` 文件夹
+- 支持个人消息和群消息
+- 下载过程中显示进度提示
+- 自动发送下载的图片
+- 支持处理 `data-src` 和 `src` 属性的图片链接
 
-#### 修改模板代码
+## 使用方法
 
-- 修改此文档顶部插件名称信息
-- 将此文档下方的`<插件发布仓库地址>`改为你的插件在 GitHub 上的地址
-- 补充下方的`使用`章节内
-- 修改`main.py`中的`MyPlugin`类名为你的插件类名
-- 修改`manifest.yaml`中的信息
-- 将插件所需依赖库写到`requirements.txt`中
-- 根据[插件开发教程](https://docs.langbot.app/zh/plugin/dev/tutor.html)编写插件代码
-- 删除 README.md 中的注释内容
+1. 在聊天中发送以下格式的消息：
+```
+/img 微信文章链接
+```
 
+例如：
+```
+/img https://mp.weixin.qq.com/s/xxx
+```
 
-#### 发布插件
+2. 插件会自动：
+   - 解析文章中的图片
+   - 下载所有图片
+   - 将图片保存到 `wechat_images` 文件夹
+   - 发送下载成功的提示
+   - 自动发送下载的图片
 
-推荐将插件上传到 GitHub 代码仓库，以便用户通过下方方式安装。   
-欢迎[提issue](https://github.com/RockChinQ/LangBot/issues/new?assignees=&labels=%E7%8B%AC%E7%AB%8B%E6%8F%92%E4%BB%B6&projects=&template=submit-plugin.yml&title=%5BPlugin%5D%3A+%E8%AF%B7%E6%B1%82%E7%99%BB%E8%AE%B0%E6%96%B0%E6%8F%92%E4%BB%B6)，将您的插件提交到[插件列表](https://github.com/stars/RockChinQ/lists/qchatgpt-%E6%8F%92%E4%BB%B6)
+## 配置说明
 
-下方是给用户看的内容，按需修改
--->
+插件支持以下配置项：
 
-## 安装
+- `user_agent`: HTTP 请求的用户代理字符串
+  - 默认值：`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36`
+  - 可选配置，建议保持默认值
 
-配置完成 [LangBot](https://github.com/RockChinQ/LangBot) 主程序后即可到插件管理页面安装  
-或查看详细的[插件安装说明](https://docs.langbot.app/plugin/plugin-intro.html#%E6%8F%92%E4%BB%B6%E7%94%A8%E6%B3%95)
+## 注意事项
 
-## 使用
+1. 确保有足够的磁盘空间存储下载的图片
+2. 图片会以 `image_0.jpg`、`image_1.jpg` 等格式保存
+3. 如果下载失败，会显示具体的错误信息
+4. 建议在下载大量图片时注意网络状况
 
-<!-- 插件开发者自行填写插件使用说明 -->
+## 依赖要求
+
+- Python 3.6+
+- requests
+- beautifulsoup4
+
+## 安装依赖
+
+```bash
+pip install requests beautifulsoup4
+```

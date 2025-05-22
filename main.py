@@ -1,48 +1,120 @@
 from pkg.plugin.context import register, handler, llm_func, BasePlugin, APIHost, EventContext
 from pkg.plugin.events import *  # 导入事件类
+import os
+import requests
+from bs4 import BeautifulSoup
+import re
 
 
 # 注册插件
-@register(name="Hello", description="hello world", version="0.1", author="RockChinQ")
+@register(name="WechatImageDownloader", description="下载微信文章图片", version="0.1", author="RockChinQ")
 class MyPlugin(BasePlugin):
 
     # 插件加载时触发
     def __init__(self, host: APIHost):
-        pass
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        os.makedirs('wechat_images', exist_ok=True)
 
     # 异步初始化
     async def initialize(self):
         pass
 
+    async def download_and_save_image(self, img_url, idx):
+        try:
+            img_data = requests.get(img_url, headers=self.headers).content
+            file_path = f'wechat_images/image_{idx}.jpg'
+            with open(file_path, 'wb') as f:
+                f.write(img_data)
+            return file_path
+        except Exception as e:
+            self.ap.logger.error(f"下载失败：{img_url}，错误：{e}")
+            return None
+
     # 当收到个人消息时触发
     @handler(PersonNormalMessageReceived)
     async def person_normal_message_received(self, ctx: EventContext):
-        msg = ctx.event.text_message  # 这里的 event 即为 PersonNormalMessageReceived 的对象
-        if msg == "hello":  # 如果消息为hello
+        msg = ctx.event.text_message
+        
+        if msg.startswith("/img"):
+            # 提取URL
+            url_match = re.search(r'/img\s*(https?://[^\s]+)', msg)
+            if not url_match:
+                ctx.add_return("reply", ["请提供有效的微信文章链接，格式：/img 链接"])
+                ctx.prevent_default()
+                return
 
-            # 输出调试信息
-            self.ap.logger.debug("hello, {}".format(ctx.event.sender_id))
+            url = url_match.group(1)
+            try:
+                response = requests.get(url, headers=self.headers)
+                soup = BeautifulSoup(response.text, 'html.parser')
+                img_tags = soup.find_all('img')
+                
+                if not img_tags:
+                    ctx.add_return("reply", ["未找到图片"])
+                    ctx.prevent_default()
+                    return
 
-            # 回复消息 "hello, <发送者id>!"
-            ctx.add_return("reply", ["hello, {}!".format(ctx.event.sender_id)])
-
-            # 阻止该事件默认行为（向接口获取回复）
-            ctx.prevent_default()
+                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
+                
+                for idx, img in enumerate(img_tags):
+                    img_url = img.get('data-src') or img.get('src')
+                    if img_url and 'http' in img_url:
+                        file_path = await self.download_and_save_image(img_url, idx)
+                        if file_path:
+                            ctx.add_return("reply", [f"图片 {idx+1} 下载成功"])
+                            # 发送图片
+                            ctx.add_return("image", [file_path])
+                
+                ctx.prevent_default()
+                
+            except Exception as e:
+                ctx.add_return("reply", [f"处理失败：{str(e)}"])
+                ctx.prevent_default()
+                return
 
     # 当收到群消息时触发
     @handler(GroupNormalMessageReceived)
     async def group_normal_message_received(self, ctx: EventContext):
-        msg = ctx.event.text_message  # 这里的 event 即为 GroupNormalMessageReceived 的对象
-        if msg == "hello":  # 如果消息为hello
+        msg = ctx.event.text_message
+        
+        if msg.startswith("/img"):
+            # 提取URL
+            url_match = re.search(r'/img\s*(https?://[^\s]+)', msg)
+            if not url_match:
+                ctx.add_return("reply", ["请提供有效的微信文章链接，格式：/img 链接"])
+                ctx.prevent_default()
+                return
 
-            # 输出调试信息
-            self.ap.logger.debug("hello, {}".format(ctx.event.sender_id))
+            url = url_match.group(1)
+            try:
+                response = requests.get(url, headers=self.headers)
+                soup = BeautifulSoup(response.text, 'html.parser')
+                img_tags = soup.find_all('img')
+                
+                if not img_tags:
+                    ctx.add_return("reply", ["未找到图片"])
+                    ctx.prevent_default()
+                    return
 
-            # 回复消息 "hello, everyone!"
-            ctx.add_return("reply", ["hello, everyone!"])
-
-            # 阻止该事件默认行为（向接口获取回复）
-            ctx.prevent_default()
+                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
+                
+                for idx, img in enumerate(img_tags):
+                    img_url = img.get('data-src') or img.get('src')
+                    if img_url and 'http' in img_url:
+                        file_path = await self.download_and_save_image(img_url, idx)
+                        if file_path:
+                            ctx.add_return("reply", [f"图片 {idx+1} 下载成功"])
+                            # 发送图片
+                            ctx.add_return("image", [file_path])
+                
+                ctx.prevent_default()
+                
+            except Exception as e:
+                ctx.add_return("reply", [f"处理失败：{str(e)}"])
+                ctx.prevent_default()
+                return
 
     # 插件卸载时触发
     def __del__(self):
