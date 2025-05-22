@@ -56,14 +56,14 @@ class MyPlugin(BasePlugin):
                     ctx.prevent_default()
                     return
 
-                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
+                #ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
                 
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
                     if img_url and 'http' in img_url:
                         file_path = await self.download_and_save_image(img_url, idx)
                         if file_path:
-                            ctx.add_return("reply", [f"图片 {idx+1} 下载成功"])
+                            #ctx.add_return("reply", [f"图片 {idx+1} 下载成功"])
                             # 发送图片
                             ctx.add_return("image", [file_path])
                 
@@ -97,15 +97,12 @@ class MyPlugin(BasePlugin):
                     ctx.add_return("reply", ["未找到图片"])
                     ctx.prevent_default()
                     return
-
-                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
                 
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
                     if img_url and 'http' in img_url:
                         file_path = await self.download_and_save_image(img_url, idx)
                         if file_path:
-                            ctx.add_return("reply", [f"图片 {idx+1} 下载成功"])
                             # 发送图片
                             ctx.add_return("image", [file_path])
                 
