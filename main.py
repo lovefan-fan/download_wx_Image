@@ -45,10 +45,10 @@ class MyPlugin(BasePlugin):
             file_path = f'wechat_images/image_{idx}{ext}'
             with open(file_path, 'wb') as f:
                 f.write(img_data)
-            return img_data, ext  # 返回图片数据和扩展名
+            return img_data, ext, file_path  # 返回图片数据、扩展名和文件路径
         except Exception as e:
             self.ap.logger.error(f"下载失败：{img_url}，错误：{e}")
-            return None, None
+            return None, None, None
 
     # 当收到个人消息时触发
     @handler(PersonNormalMessageReceived)
@@ -88,14 +88,11 @@ class MyPlugin(BasePlugin):
                     
                     if img_url and 'http' in img_url:
                         result = await self.download_and_save_image(img_url, idx)
-                        await ctx.reply(MessageChain([f"图片url：{img_url}"]))
                         if result:
-                            img_data, ext = result
+                            img_data, ext, file_path = result
                             try:
-                                # 将图片数据转换为base64
-                                img_base64 = base64.b64encode(img_data).decode('utf-8')
-                                # 使用MessageChain发送图片
-                                await ctx.reply(MessageChain([Image(base64=img_base64)]))
+                                # 使用文件路径发送图片
+                                ctx.add_return("image", [file_path])
                                 success_count += 1
                                 self.ap.logger.debug(f"成功发送第 {idx+1} 张图片，格式：{ext}")
                             except Exception as e:
@@ -146,12 +143,10 @@ class MyPlugin(BasePlugin):
                     if img_url and 'http' in img_url:
                         result = await self.download_and_save_image(img_url, idx)
                         if result:
-                            img_data, ext = result
+                            img_data, ext, file_path = result
                             try:
-                                # 将图片数据转换为base64
-                                img_base64 = base64.b64encode(img_data).decode('utf-8')
-                                # 使用MessageChain发送图片
-                                await ctx.reply(MessageChain([Image(base64=img_base64)]))
+                                # 使用文件路径发送图片
+                                ctx.add_return("image", [file_path])
                                 success_count += 1
                                 self.ap.logger.debug(f"成功发送第 {idx+1} 张图片，格式：{ext}")
                             except Exception as e:
