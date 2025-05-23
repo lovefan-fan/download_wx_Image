@@ -19,13 +19,13 @@ class MyPlugin(BasePlugin):
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
-        self.image_dir = os.path.join(os.getcwd(), 'wechat_images')
-        os.makedirs(self.image_dir, exist_ok=True)
-        self.ap.logger.info(f"图片保存目录：{self.image_dir}")
+        self.image_dir = None
 
     # 异步初始化
     async def initialize(self):
-        pass
+        self.image_dir = os.path.join(os.getcwd(), 'wechat_images')
+        os.makedirs(self.image_dir, exist_ok=True)
+        self.ap.logger.info(f"图片保存目录：{self.image_dir}")
 
     def get_file_extension(self, url):
         try:
