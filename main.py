@@ -35,7 +35,7 @@ class MyPlugin(BasePlugin):
                 return
 
             url = url_match.group(1)
-            self.ap.logger.info(f"收到图片下载请求，URL: {url}")
+            #self.ap.logger.info(f"收到图片下载请求，URL: {url}")
             
             try:
                 response = requests.get(url, headers=self.headers)
@@ -61,7 +61,7 @@ class MyPlugin(BasePlugin):
                     img_url = img.get('data-src') or img.get('src')
                     if img_url and 'http' in img_url:
                         try:
-                            self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
+                            #self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
                             msg_chain.append(Image(url=img_url))
                             success_count += 1
                         except Exception as e:
@@ -69,6 +69,7 @@ class MyPlugin(BasePlugin):
                 
                 # 发送所有图片
                 if success_count > 0:
+                    self.ap.logger.info(f"msg_chain:{msg_chain}")
                     await ctx.reply(msg_chain)
                     await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
                 else:
