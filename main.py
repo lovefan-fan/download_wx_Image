@@ -99,6 +99,8 @@ class MyPlugin(BasePlugin):
                     ctx.add_return("reply", ["未找到图片"])
                     ctx.prevent_default()
                     return
+
+                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
                 
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
