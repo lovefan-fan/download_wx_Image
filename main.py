@@ -145,9 +145,9 @@ class MyPlugin(BasePlugin):
                         if result:
                             img_data, ext, file_path = result
                             try:
-                                # 使用文件路径发送图片
-                                self.ap.logger.info(f"尝试发送图片：{file_path}")
-                                await ctx.reply(MessageChain([Image(path=file_path)]))
+                                # 使用图片数据发送图片
+                                self.ap.logger.info(f"尝试发送图片数据，大小：{len(img_data)} 字节")
+                                await ctx.reply(MessageChain([Image(data=img_data)]))
                                 success_count += 1
                                 self.ap.logger.info(f"成功发送第 {idx+1} 张图片，格式：{ext}")
                             except Exception as e:
@@ -203,9 +203,9 @@ class MyPlugin(BasePlugin):
                         if result:
                             img_data, ext, file_path = result
                             try:
-                                # 使用文件路径发送图片
-                                self.ap.logger.info(f"尝试发送图片：{file_path}")
-                                await ctx.reply(MessageChain([Image(path=file_path)]))
+                                # 使用图片数据发送图片
+                                self.ap.logger.info(f"尝试发送图片数据，大小：{len(img_data)} 字节")
+                                await ctx.reply(MessageChain([Image(data=img_data)]))
                                 success_count += 1
                                 self.ap.logger.info(f"成功发送第 {idx+1} 张图片，格式：{ext}")
                             except Exception as e:
