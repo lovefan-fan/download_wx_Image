@@ -147,7 +147,10 @@ class MyPlugin(BasePlugin):
                             try:
                                 # 使用图片数据发送图片
                                 self.ap.logger.info(f"尝试发送图片数据，大小：{len(img_data)} 字节")
-                                await ctx.reply(MessageChain([Image(data=img_data)]))
+                                msg_chain = MessageChain([
+    Image(url=img_url)
+])
+                                await ctx.reply(msg_chain)
                                 success_count += 1
                                 self.ap.logger.info(f"成功发送第 {idx+1} 张图片，格式：{ext}")
                             except Exception as e:
