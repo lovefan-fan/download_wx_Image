@@ -88,6 +88,7 @@ class MyPlugin(BasePlugin):
                     
                     if img_url and 'http' in img_url:
                         result = await self.download_and_save_image(img_url, idx)
+                        await ctx.reply(MessageChain([f"图片url：{img_url}"]))
                         if result:
                             img_data, ext = result
                             try:
