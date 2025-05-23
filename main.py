@@ -59,7 +59,11 @@ class MyPlugin(BasePlugin):
                     ctx.prevent_default()
                     return
 
-                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
+                # 先阻止默认行为
+                ctx.prevent_default()
+                
+                # 发送开始下载的消息
+                await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始下载..."]))
                 
                 success_count = 0
                 for idx, img in enumerate(img_tags):
@@ -79,12 +83,11 @@ class MyPlugin(BasePlugin):
                             except Exception as e:
                                 self.ap.logger.error(f"发送第 {idx+1} 张图片失败：{str(e)}")
                 
-                ctx.add_return("reply", [f"下载完成，成功下载并发送 {success_count} 张图片"])
-                ctx.prevent_default()
+                # 发送完成消息
+                await ctx.reply(MessageChain([f"下载完成，成功下载并发送 {success_count} 张图片"]))
                 
             except Exception as e:
-                ctx.add_return("reply", [f"处理失败：{str(e)}"])
-                ctx.prevent_default()
+                await ctx.reply(MessageChain([f"处理失败：{str(e)}"]))
                 return
 
     # 当收到群消息时触发
@@ -111,7 +114,11 @@ class MyPlugin(BasePlugin):
                     ctx.prevent_default()
                     return
 
-                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
+                # 先阻止默认行为
+                ctx.prevent_default()
+                
+                # 发送开始下载的消息
+                await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始下载..."]))
                 
                 success_count = 0
                 for idx, img in enumerate(img_tags):
@@ -131,12 +138,11 @@ class MyPlugin(BasePlugin):
                             except Exception as e:
                                 self.ap.logger.error(f"发送第 {idx+1} 张图片失败：{str(e)}")
                 
-                ctx.add_return("reply", [f"下载完成，成功下载并发送 {success_count} 张图片"])
-                ctx.prevent_default()
+                # 发送完成消息
+                await ctx.reply(MessageChain([f"下载完成，成功下载并发送 {success_count} 张图片"]))
                 
             except Exception as e:
-                ctx.add_return("reply", [f"处理失败：{str(e)}"])
-                ctx.prevent_default()
+                await ctx.reply(MessageChain([f"处理失败：{str(e)}"]))
                 return
 
     # 插件卸载时触发
