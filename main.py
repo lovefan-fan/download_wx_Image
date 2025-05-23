@@ -1,13 +1,10 @@
 from pkg.plugin.context import register, handler, llm_func, BasePlugin, APIHost, EventContext
 from pkg.plugin.events import *  # 导入事件类
 from pkg.platform.types import *
-from pkg.platform.types import Image  # 添加 Image 类的导入
 import os
 import requests
 from bs4 import BeautifulSoup
 import re
-import base64
-import mimetypes
 
 
 # 注册插件
@@ -19,89 +16,10 @@ class MyPlugin(BasePlugin):
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
-        self.image_dir = None
 
     # 异步初始化
     async def initialize(self):
-        # 使用插件的根目录
-        plugin_root = os.path.dirname(os.path.abspath(__file__))
-        self.image_dir = os.path.join(plugin_root, 'wechat_images')
-        
-        # 确保目录存在
-        os.makedirs(self.image_dir, exist_ok=True)
-        
-        # 检查目录权限
-        if not os.access(self.image_dir, os.W_OK):
-            self.ap.logger.error(f"没有写入权限：{self.image_dir}")
-            return
-            
-        self.ap.logger.info(f"图片保存目录：{self.image_dir}")
-        self.ap.logger.info(f"当前工作目录：{os.getcwd()}")
-        self.ap.logger.info(f"目录是否存在：{os.path.exists(self.image_dir)}")
-        self.ap.logger.info(f"目录权限：{oct(os.stat(self.image_dir).st_mode)[-3:]}")
-
-    def get_file_extension(self, url):
-        try:
-            # 从URL中获取文件扩展名
-            response = requests.head(url, headers=self.headers)
-            content_type = response.headers.get('content-type', '')
-            self.ap.logger.info(f"图片URL: {url}, Content-Type: {content_type}")
-            
-            if 'gif' in content_type:
-                return '.gif'
-            elif 'png' in content_type:
-                return '.png'
-            elif 'jpeg' in content_type or 'jpg' in content_type:
-                return '.jpg'
-            else:
-                return '.jpg'  # 默认使用jpg
-        except Exception as e:
-            self.ap.logger.error(f"获取文件扩展名失败：{url}，错误：{e}")
-            return '.jpg'
-
-    async def download_and_save_image(self, img_url, idx):
-        try:
-            if not self.image_dir:
-                self.ap.logger.error("图片保存目录未初始化")
-                return None, None, None
-                
-            self.ap.logger.info(f"开始下载图片：{img_url}")
-            response = requests.get(img_url, headers=self.headers)
-            if response.status_code != 200:
-                self.ap.logger.error(f"下载图片失败，状态码：{response.status_code}")
-                return None, None, None
-                
-            img_data = response.content
-            if not img_data:
-                self.ap.logger.error("下载的图片数据为空")
-                return None, None, None
-                
-            # 获取正确的文件扩展名
-            ext = self.get_file_extension(img_url)
-            file_path = os.path.join(self.image_dir, f'image_{idx}{ext}')
-            
-            self.ap.logger.info(f"保存图片到：{file_path}")
-            try:
-                with open(file_path, 'wb') as f:
-                    f.write(img_data)
-                self.ap.logger.info(f"文件写入完成")
-            except Exception as e:
-                self.ap.logger.error(f"写入文件失败：{str(e)}")
-                return None, None, None
-            
-            # 验证文件是否成功保存
-            if os.path.exists(file_path):
-                file_size = os.path.getsize(file_path)
-                self.ap.logger.info(f"图片保存成功，大小：{file_size} 字节")
-                self.ap.logger.info(f"文件权限：{oct(os.stat(file_path).st_mode)[-3:]}")
-                return img_data, ext, file_path
-            else:
-                self.ap.logger.error("图片文件保存失败")
-                return None, None, None
-                
-        except Exception as e:
-            self.ap.logger.error(f"下载失败：{img_url}，错误：{e}")
-            return None, None, None
+        pass
 
     # 当收到个人消息时触发
     @handler(PersonNormalMessageReceived)
@@ -133,31 +51,28 @@ class MyPlugin(BasePlugin):
                 ctx.prevent_default()
                 
                 # 发送开始下载的消息
-                await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始下载..."]))
+                await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始处理..."]))
                 
+                # 构建消息链
+                msg_chain = MessageChain([])
                 success_count = 0
+                
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
-                    self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
-                    
                     if img_url and 'http' in img_url:
-                        result = await self.download_and_save_image(img_url, idx)
-                        if result:
-                            img_data, ext, file_path = result
-                            try:
-                                # 使用图片数据发送图片
-                                self.ap.logger.info(f"尝试发送图片数据，大小：{len(img_data)} 字节")
-                                msg_chain = MessageChain([
-    Image(url=img_url)
-])
-                                await ctx.reply(msg_chain)
-                                success_count += 1
-                                self.ap.logger.info(f"成功发送第 {idx+1} 张图片，格式：{ext}")
-                            except Exception as e:
-                                self.ap.logger.error(f"发送第 {idx+1} 张图片失败：{str(e)}")
+                        try:
+                            self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
+                            msg_chain.append(Image(url=img_url))
+                            success_count += 1
+                        except Exception as e:
+                            self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
-                # 发送完成消息
-                await ctx.reply(MessageChain([f"下载完成，成功下载并发送 {success_count} 张图片"]))
+                # 发送所有图片
+                if success_count > 0:
+                    await ctx.reply(msg_chain)
+                    await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
+                else:
+                    await ctx.reply(MessageChain(["未找到可用的图片"]))
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
@@ -194,28 +109,28 @@ class MyPlugin(BasePlugin):
                 ctx.prevent_default()
                 
                 # 发送开始下载的消息
-                await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始下载..."]))
+                await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始处理..."]))
                 
+                # 构建消息链
+                msg_chain = MessageChain([])
                 success_count = 0
+                
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
-                    self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
-                    
                     if img_url and 'http' in img_url:
-                        result = await self.download_and_save_image(img_url, idx)
-                        if result:
-                            img_data, ext, file_path = result
-                            try:
-                                # 使用图片数据发送图片
-                                self.ap.logger.info(f"尝试发送图片数据，大小：{len(img_data)} 字节")
-                                await ctx.reply(MessageChain([Image(data=img_data)]))
-                                success_count += 1
-                                self.ap.logger.info(f"成功发送第 {idx+1} 张图片，格式：{ext}")
-                            except Exception as e:
-                                self.ap.logger.error(f"发送第 {idx+1} 张图片失败：{str(e)}")
+                        try:
+                            self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
+                            msg_chain.append(Image(url=img_url))
+                            success_count += 1
+                        except Exception as e:
+                            self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
-                # 发送完成消息
-                await ctx.reply(MessageChain([f"下载完成，成功下载并发送 {success_count} 张图片"]))
+                # 发送所有图片
+                if success_count > 0:
+                    await ctx.reply(msg_chain)
+                    await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
+                else:
+                    await ctx.reply(MessageChain(["未找到可用的图片"]))
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
