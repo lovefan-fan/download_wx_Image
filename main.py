@@ -23,9 +23,22 @@ class MyPlugin(BasePlugin):
 
     # 异步初始化
     async def initialize(self):
-        self.image_dir = os.path.join(os.getcwd(), 'wechat_images')
+        # 使用插件的根目录
+        plugin_root = os.path.dirname(os.path.abspath(__file__))
+        self.image_dir = os.path.join(plugin_root, 'wechat_images')
+        
+        # 确保目录存在
         os.makedirs(self.image_dir, exist_ok=True)
+        
+        # 检查目录权限
+        if not os.access(self.image_dir, os.W_OK):
+            self.ap.logger.error(f"没有写入权限：{self.image_dir}")
+            return
+            
         self.ap.logger.info(f"图片保存目录：{self.image_dir}")
+        self.ap.logger.info(f"当前工作目录：{os.getcwd()}")
+        self.ap.logger.info(f"目录是否存在：{os.path.exists(self.image_dir)}")
+        self.ap.logger.info(f"目录权限：{oct(os.stat(self.image_dir).st_mode)[-3:]}")
 
     def get_file_extension(self, url):
         try:
@@ -48,6 +61,10 @@ class MyPlugin(BasePlugin):
 
     async def download_and_save_image(self, img_url, idx):
         try:
+            if not self.image_dir:
+                self.ap.logger.error("图片保存目录未初始化")
+                return None, None, None
+                
             self.ap.logger.info(f"开始下载图片：{img_url}")
             response = requests.get(img_url, headers=self.headers)
             if response.status_code != 200:
@@ -64,13 +81,19 @@ class MyPlugin(BasePlugin):
             file_path = os.path.join(self.image_dir, f'image_{idx}{ext}')
             
             self.ap.logger.info(f"保存图片到：{file_path}")
-            with open(file_path, 'wb') as f:
-                f.write(img_data)
+            try:
+                with open(file_path, 'wb') as f:
+                    f.write(img_data)
+                self.ap.logger.info(f"文件写入完成")
+            except Exception as e:
+                self.ap.logger.error(f"写入文件失败：{str(e)}")
+                return None, None, None
             
             # 验证文件是否成功保存
             if os.path.exists(file_path):
                 file_size = os.path.getsize(file_path)
                 self.ap.logger.info(f"图片保存成功，大小：{file_size} 字节")
+                self.ap.logger.info(f"文件权限：{oct(os.stat(file_path).st_mode)[-3:]}")
                 return img_data, ext, file_path
             else:
                 self.ap.logger.error("图片文件保存失败")
