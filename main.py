@@ -62,6 +62,7 @@ class MyPlugin(BasePlugin):
                             #self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
                             # 发送单张图片
                             await ctx.reply(MessageChain([Image(url=img_url)]))
+                            await ctx.reply(MessageChain([f"处理第 {idx+1} 张图片，URL: {img_url}"]))
                             success_count += 1
                             # 等待2秒
                             await asyncio.sleep(2)
