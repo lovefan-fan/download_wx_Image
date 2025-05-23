@@ -5,6 +5,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import re
+import asyncio
 
 
 # 注册插件
@@ -53,27 +54,22 @@ class MyPlugin(BasePlugin):
                 # 发送开始下载的消息
                 await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始处理..."]))
                 
-                # 构建消息链
-                msg_chain = MessageChain([])
                 success_count = 0
-                
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
                     if img_url and 'http' in img_url:
                         try:
                             #self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
-                            msg_chain.append(Image(url=img_url))
+                            # 发送单张图片
+                            await ctx.reply(MessageChain([Image(url=img_url)]))
                             success_count += 1
+                            # 等待2秒
+                            await asyncio.sleep(2)
                         except Exception as e:
                             self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
-                # 发送所有图片
-                if success_count > 0:
-                    self.ap.logger.info(f"msg_chain:{msg_chain}")
-                    await ctx.reply(msg_chain)
-                    await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
-                else:
-                    await ctx.reply(MessageChain(["未找到可用的图片"]))
+                # 发送完成消息
+                await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
@@ -94,7 +90,7 @@ class MyPlugin(BasePlugin):
                 return
 
             url = url_match.group(1)
-            self.ap.logger.info(f"收到图片下载请求，URL: {url}")
+            #self.ap.logger.info(f"收到图片下载请求，URL: {url}")
             
             try:
                 response = requests.get(url, headers=self.headers)
@@ -112,26 +108,22 @@ class MyPlugin(BasePlugin):
                 # 发送开始下载的消息
                 await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始处理..."]))
                 
-                # 构建消息链
-                msg_chain = MessageChain([])
                 success_count = 0
-                
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
                     if img_url and 'http' in img_url:
                         try:
-                            self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
-                            msg_chain.append(Image(url=img_url))
+                            #self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
+                            # 发送单张图片
+                            await ctx.reply(MessageChain([Image(url=img_url)]))
                             success_count += 1
+                            # 等待2秒
+                            await asyncio.sleep(2)
                         except Exception as e:
                             self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
-                # 发送所有图片
-                if success_count > 0:
-                    await ctx.reply(msg_chain)
-                    await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
-                else:
-                    await ctx.reply(MessageChain(["未找到可用的图片"]))
+                # 发送完成消息
+                await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
