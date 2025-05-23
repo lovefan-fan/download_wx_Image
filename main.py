@@ -84,7 +84,7 @@ class MyPlugin(BasePlugin):
                 success_count = 0
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
-                    self.ap.logger.debug(f"处理第 {idx+1} 张图片，URL: {img_url}")
+                    self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
                     
                     if img_url and 'http' in img_url:
                         result = await self.download_and_save_image(img_url, idx)
@@ -94,7 +94,7 @@ class MyPlugin(BasePlugin):
                                 # 使用文件路径发送图片
                                 ctx.add_return("image", [file_path])
                                 success_count += 1
-                                self.ap.logger.debug(f"成功发送第 {idx+1} 张图片，格式：{ext}")
+                                self.ap.logger.info(f"成功发送第 {idx+1} 张图片，格式：{ext}")
                             except Exception as e:
                                 self.ap.logger.error(f"发送第 {idx+1} 张图片失败：{str(e)}")
                 
@@ -138,7 +138,7 @@ class MyPlugin(BasePlugin):
                 success_count = 0
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
-                    self.ap.logger.debug(f"处理第 {idx+1} 张图片，URL: {img_url}")
+                    self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
                     
                     if img_url and 'http' in img_url:
                         result = await self.download_and_save_image(img_url, idx)
@@ -148,7 +148,7 @@ class MyPlugin(BasePlugin):
                                 # 使用文件路径发送图片
                                 ctx.add_return("image", [file_path])
                                 success_count += 1
-                                self.ap.logger.debug(f"成功发送第 {idx+1} 张图片，格式：{ext}")
+                                self.ap.logger.info(f"成功发送第 {idx+1} 张图片，格式：{ext}")
                             except Exception as e:
                                 self.ap.logger.error(f"发送第 {idx+1} 张图片失败：{str(e)}")
                 
