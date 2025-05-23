@@ -1,6 +1,7 @@
 from pkg.plugin.context import register, handler, llm_func, BasePlugin, APIHost, EventContext
 from pkg.plugin.events import *  # 导入事件类
 from pkg.platform.types import *
+from pkg.platform.types import Image  # 添加 Image 类的导入
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -92,7 +93,7 @@ class MyPlugin(BasePlugin):
                             img_data, ext, file_path = result
                             try:
                                 # 使用文件路径发送图片
-                                await ctx.reply(MessageChain([Image.fromFileSystem(file_path)]))
+                                await ctx.reply(MessageChain([Image.from_file_system(file_path)]))
                                 success_count += 1
                                 self.ap.logger.info(f"成功发送第 {idx+1} 张图片，格式：{ext}")
                             except Exception as e:
@@ -146,7 +147,7 @@ class MyPlugin(BasePlugin):
                             img_data, ext, file_path = result
                             try:
                                 # 使用文件路径发送图片
-                                await ctx.reply(MessageChain([Image.fromFileSystem(file_path)]))
+                                await ctx.reply(MessageChain([Image.from_file_system(file_path)]))
                                 success_count += 1
                                 self.ap.logger.info(f"成功发送第 {idx+1} 张图片，格式：{ext}")
                             except Exception as e:
