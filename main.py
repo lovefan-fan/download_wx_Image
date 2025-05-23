@@ -65,7 +65,7 @@ class MyPlugin(BasePlugin):
                             await ctx.reply(MessageChain([f"处理第 {idx+1} 张图片，URL: {img_url}"]))
                             success_count += 1
                             # 等待2秒
-                            await asyncio.sleep(2)
+                            await asyncio.sleep(10)
                         except Exception as e:
                             self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
