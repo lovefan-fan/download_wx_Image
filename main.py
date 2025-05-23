@@ -1,9 +1,11 @@
 from pkg.plugin.context import register, handler, llm_func, BasePlugin, APIHost, EventContext
 from pkg.plugin.events import *  # 导入事件类
+from pkg.platform.types import *
 import os
 import requests
 from bs4 import BeautifulSoup
 import re
+import base64
 
 
 # 注册插件
@@ -27,7 +29,7 @@ class MyPlugin(BasePlugin):
             file_path = f'wechat_images/image_{idx}.jpg'
             with open(file_path, 'wb') as f:
                 f.write(img_data)
-            return file_path
+            return img_data  # 返回图片数据而不是文件路径
         except Exception as e:
             self.ap.logger.error(f"下载失败：{img_url}，错误：{e}")
             return None
@@ -46,6 +48,7 @@ class MyPlugin(BasePlugin):
                 return
 
             url = url_match.group(1)
+            
             try:
                 response = requests.get(url, headers=self.headers)
                 soup = BeautifulSoup(response.text, 'html.parser')
@@ -56,16 +59,17 @@ class MyPlugin(BasePlugin):
                     ctx.prevent_default()
                     return
 
-                #ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
+                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
                 
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
                     if img_url and 'http' in img_url:
-                        file_path = await self.download_and_save_image(img_url, idx)
-                        if file_path:
-                            #ctx.add_return("reply", [f"图片 {idx+1} 下载成功"])
-                            # 发送图片
-                            ctx.add_return("image", [file_path])
+                        img_data = await self.download_and_save_image(img_url, idx)
+                        if img_data:
+                            # 将图片数据转换为base64
+                            img_base64 = base64.b64encode(img_data).decode('utf-8')
+                            # 使用MessageChain发送图片
+                            await ctx.reply(MessageChain([Image(base64=img_base64)]))
                 
                 ctx.prevent_default()
                 
@@ -97,14 +101,18 @@ class MyPlugin(BasePlugin):
                     ctx.add_return("reply", ["未找到图片"])
                     ctx.prevent_default()
                     return
+
+                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
                 
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
                     if img_url and 'http' in img_url:
-                        file_path = await self.download_and_save_image(img_url, idx)
-                        if file_path:
-                            # 发送图片
-                            ctx.add_return("image", [file_path])
+                        img_data = await self.download_and_save_image(img_url, idx)
+                        if img_data:
+                            # 将图片数据转换为base64
+                            img_base64 = base64.b64encode(img_data).decode('utf-8')
+                            # 使用MessageChain发送图片
+                            await ctx.reply(MessageChain([Image(base64=img_base64)]))
                 
                 ctx.prevent_default()
                 
