@@ -58,18 +58,28 @@ class MyPlugin(BasePlugin):
                     ctx.add_return("reply", ["未找到图片"])
                     ctx.prevent_default()
                     return
+
+                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
                 
+                success_count = 0
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
-                    self.ap.logger.debug(f"图片URL: {img_url}")
+                    self.ap.logger.debug(f"处理第 {idx+1} 张图片，URL: {img_url}")
+                    
                     if img_url and 'http' in img_url:
                         img_data = await self.download_and_save_image(img_url, idx)
                         if img_data:
-                            # 将图片数据转换为base64
-                            img_base64 = base64.b64encode(img_data).decode('utf-8')
-                            # 使用MessageChain发送图片
-                            await ctx.reply(MessageChain([Image(base64=img_base64)]))
+                            try:
+                                # 将图片数据转换为base64
+                                img_base64 = base64.b64encode(img_data).decode('utf-8')
+                                # 使用MessageChain发送图片
+                                await ctx.reply(MessageChain([Image(base64=img_base64)]))
+                                success_count += 1
+                                self.ap.logger.debug(f"成功发送第 {idx+1} 张图片")
+                            except Exception as e:
+                                self.ap.logger.error(f"发送第 {idx+1} 张图片失败：{str(e)}")
                 
+                ctx.add_return("reply", [f"下载完成，成功下载并发送 {success_count} 张图片"])
                 ctx.prevent_default()
                 
             except Exception as e:
@@ -100,17 +110,28 @@ class MyPlugin(BasePlugin):
                     ctx.add_return("reply", ["未找到图片"])
                     ctx.prevent_default()
                     return
+
+                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
                 
+                success_count = 0
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
+                    self.ap.logger.debug(f"处理第 {idx+1} 张图片，URL: {img_url}")
+                    
                     if img_url and 'http' in img_url:
                         img_data = await self.download_and_save_image(img_url, idx)
                         if img_data:
-                            # 将图片数据转换为base64
-                            img_base64 = base64.b64encode(img_data).decode('utf-8')
-                            # 使用MessageChain发送图片
-                            await ctx.reply(MessageChain([Image(base64=img_base64)]))
+                            try:
+                                # 将图片数据转换为base64
+                                img_base64 = base64.b64encode(img_data).decode('utf-8')
+                                # 使用MessageChain发送图片
+                                await ctx.reply(MessageChain([Image(base64=img_base64)]))
+                                success_count += 1
+                                self.ap.logger.debug(f"成功发送第 {idx+1} 张图片")
+                            except Exception as e:
+                                self.ap.logger.error(f"发送第 {idx+1} 张图片失败：{str(e)}")
                 
+                ctx.add_return("reply", [f"下载完成，成功下载并发送 {success_count} 张图片"])
                 ctx.prevent_default()
                 
             except Exception as e:
