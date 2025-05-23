@@ -26,7 +26,7 @@ class MyPlugin(BasePlugin):
     async def download_and_save_image(self, img_url, idx):
         try:
             img_data = requests.get(img_url, headers=self.headers).content
-            file_path = f'wechat_images/image_{idx}.jpg'
+            file_path = f'wechat_images/image_{idx}.gif'
             with open(file_path, 'wb') as f:
                 f.write(img_data)
             return img_data  # 返回图片数据而不是文件路径
@@ -61,6 +61,7 @@ class MyPlugin(BasePlugin):
                 
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
+                    self.ap.logger.debug(f"图片URL: {img_url}")
                     if img_url and 'http' in img_url:
                         img_data = await self.download_and_save_image(img_url, idx)
                         if img_data:
@@ -99,8 +100,6 @@ class MyPlugin(BasePlugin):
                     ctx.add_return("reply", ["未找到图片"])
                     ctx.prevent_default()
                     return
-
-                ctx.add_return("reply", [f"找到 {len(img_tags)} 张图片，开始下载..."])
                 
                 for idx, img in enumerate(img_tags):
                     img_url = img.get('data-src') or img.get('src')
