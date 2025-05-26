@@ -6,6 +6,8 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import asyncio
+import hashlib
+import json
 
 
 # 注册插件
@@ -17,10 +19,42 @@ class MyPlugin(BasePlugin):
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
+        self.api_url = "http://192.168.0.246:9090/message/ForwardEmoji"
+        self.api_key = "10dca0e1-8c7e-41d1-8b5c-4a64b63c39cd"
 
     # 异步初始化
     async def initialize(self):
         pass
+
+    def calculate_md5(self, data):
+        """计算数据的MD5值"""
+        return hashlib.md5(data).hexdigest()
+
+    async def forward_emoji(self, emoji_md5, to_user_name):
+        """调用转发表情API"""
+        try:
+            headers = {
+                'accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+            
+            data = {
+                "EmojiList": [
+                    {
+                        "EmojiMd5": emoji_md5,
+                        "EmojiSize": 0,
+                        "ToUserName": to_user_name
+                    }
+                ]
+            }
+            
+            url = f"{self.api_url}?key={self.api_key}"
+            response = requests.post(url, headers=headers, json=data)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            self.ap.logger.error(f"调用转发表情API失败：{str(e)}")
+            return None
 
     # 当收到个人消息时触发
     @handler(PersonNormalMessageReceived)
@@ -36,7 +70,6 @@ class MyPlugin(BasePlugin):
                 return
 
             url = url_match.group(1)
-            #self.ap.logger.info(f"收到图片下载请求，URL: {url}")
             
             try:
                 response = requests.get(url, headers=self.headers)
@@ -59,18 +92,36 @@ class MyPlugin(BasePlugin):
                     img_url = img.get('data-src') or img.get('src')
                     if img_url and 'http' in img_url:
                         try:
-                            #self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
-                            # 发送单张图片
-                            await ctx.reply(MessageChain([Image(url=img_url)]))
-                            await ctx.reply(MessageChain([f"处理第 {idx+1} 张图片，URL: {img_url}"]))
-                            success_count += 1
-                            # 等待2秒
-                            await asyncio.sleep(10)
+                            # 下载图片
+                            img_response = requests.get(img_url, headers=self.headers)
+                            if img_response.status_code == 200:
+                                img_data = img_response.content
+                                # 计算MD5
+                                emoji_md5 = self.calculate_md5(img_data)
+                                
+                                # 发送图片信息
+                                await ctx.reply(MessageChain([f"处理第 {idx+1} 张图片，URL: {img_url}"]))
+                                await ctx.reply(MessageChain([f"图片MD5: {emoji_md5}"]))
+                                
+                                # 调用转发表情API
+                                to_user_name = ctx.event.sender.id  # 获取发送者ID
+                                result = await self.forward_emoji(emoji_md5, to_user_name)
+                                
+                                if result:
+                                    success_count += 1
+                                    await ctx.reply(MessageChain([f"成功转发第 {idx+1} 张图片"]))
+                                else:
+                                    await ctx.reply(MessageChain([f"转发第 {idx+1} 张图片失败"]))
+                                
+                                # 等待10秒
+                                await asyncio.sleep(2)
+                            else:
+                                self.ap.logger.error(f"下载图片失败，状态码：{img_response.status_code}")
                         except Exception as e:
                             self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
                 # 发送完成消息
-                await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
+                await ctx.reply(MessageChain([f"处理完成，成功转发 {success_count} 张图片"]))
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
@@ -91,7 +142,6 @@ class MyPlugin(BasePlugin):
                 return
 
             url = url_match.group(1)
-            #self.ap.logger.info(f"收到图片下载请求，URL: {url}")
             
             try:
                 response = requests.get(url, headers=self.headers)
@@ -114,17 +164,36 @@ class MyPlugin(BasePlugin):
                     img_url = img.get('data-src') or img.get('src')
                     if img_url and 'http' in img_url:
                         try:
-                            #self.ap.logger.info(f"处理第 {idx+1} 张图片，URL: {img_url}")
-                            # 发送单张图片
-                            await ctx.reply(MessageChain([Image(url=img_url)]))
-                            success_count += 1
-                            # 等待2秒
-                            await asyncio.sleep(2)
+                            # 下载图片
+                            img_response = requests.get(img_url, headers=self.headers)
+                            if img_response.status_code == 200:
+                                img_data = img_response.content
+                                # 计算MD5
+                                emoji_md5 = self.calculate_md5(img_data)
+                                
+                                # 发送图片信息
+                                await ctx.reply(MessageChain([f"处理第 {idx+1} 张图片，URL: {img_url}"]))
+                                await ctx.reply(MessageChain([f"图片MD5: {emoji_md5}"]))
+                                
+                                # 调用转发表情API
+                                to_user_name = ctx.event.sender.id  # 获取发送者ID
+                                result = await self.forward_emoji(emoji_md5, to_user_name)
+                                
+                                if result:
+                                    success_count += 1
+                                    await ctx.reply(MessageChain([f"成功转发第 {idx+1} 张图片"]))
+                                else:
+                                    await ctx.reply(MessageChain([f"转发第 {idx+1} 张图片失败"]))
+                                
+                                # 等待10秒
+                                await asyncio.sleep(2)
+                            else:
+                                self.ap.logger.error(f"下载图片失败，状态码：{img_response.status_code}")
                         except Exception as e:
                             self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
                 # 发送完成消息
-                await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
+                await ctx.reply(MessageChain([f"处理完成，成功转发 {success_count} 张图片"]))
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
