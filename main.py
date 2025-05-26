@@ -115,7 +115,7 @@ class MyPlugin(BasePlugin):
                                     pass
                                 
                                 # 等待2秒
-                                #await asyncio.sleep(2)
+                                await asyncio.sleep(2)
                             else:
                                 self.ap.logger.error(f"下载图片失败，状态码：{img_response.status_code}")
                         except Exception as e:
@@ -188,7 +188,7 @@ class MyPlugin(BasePlugin):
                                     pass
                                 
                                 # 等待2秒
-                                #await asyncio.sleep(2)
+                                await asyncio.sleep(2)
                             else:
                                 self.ap.logger.error(f"下载图片失败，状态码：{img_response.status_code}")
                         except Exception as e:
