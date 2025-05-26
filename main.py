@@ -104,7 +104,7 @@ class MyPlugin(BasePlugin):
                                 await ctx.reply(MessageChain([f"图片MD5: {emoji_md5}"]))
                                 
                                 # 调用转发表情API
-                                to_user_name = ctx.event.sender.id  # 获取发送者ID
+                                to_user_name = ctx.event.from_wxid  # 使用 from_wxid 获取发送者ID
                                 result = await self.forward_emoji(emoji_md5, to_user_name)
                                 
                                 if result:
@@ -113,7 +113,7 @@ class MyPlugin(BasePlugin):
                                 else:
                                     await ctx.reply(MessageChain([f"转发第 {idx+1} 张图片失败"]))
                                 
-                                # 等待10秒
+                                # 等待2秒
                                 await asyncio.sleep(2)
                             else:
                                 self.ap.logger.error(f"下载图片失败，状态码：{img_response.status_code}")
@@ -176,7 +176,7 @@ class MyPlugin(BasePlugin):
                                 await ctx.reply(MessageChain([f"图片MD5: {emoji_md5}"]))
                                 
                                 # 调用转发表情API
-                                to_user_name = ctx.event.sender.id  # 获取发送者ID
+                                to_user_name = ctx.event.from_wxid  # 使用 from_wxid 获取发送者ID
                                 result = await self.forward_emoji(emoji_md5, to_user_name)
                                 
                                 if result:
@@ -185,7 +185,7 @@ class MyPlugin(BasePlugin):
                                 else:
                                     await ctx.reply(MessageChain([f"转发第 {idx+1} 张图片失败"]))
                                 
-                                # 等待10秒
+                                # 等待2秒
                                 await asyncio.sleep(2)
                             else:
                                 self.ap.logger.error(f"下载图片失败，状态码：{img_response.status_code}")
