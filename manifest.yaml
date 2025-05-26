@@ -12,6 +12,19 @@ metadata:
   label:  # 插件显示名称，支持多语言。在 WebUI 上会显示对应语言的 label
     en_US: Wechat Image Downloader
     zh_CN: 微信图片下载器
+spec:
+  # 插件配置（可选），可配置多项
+  config:
+    - name: user_agent  # 配置项名称
+      label:  # 配置项显示名称，支持多语言
+        en_US: User Agent
+        zh_CN: 用户代理
+      description:  # 配置项描述，支持多语言
+        en_US: User agent for HTTP requests
+        zh_CN: 用于HTTP请求的用户代理
+      type: string  # 配置项类型，支持 string, integer, float, boolean 等
+      default: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'  # 配置项默认值
+      required: false  # 配置项是否必填
 execution:
   python:
     path: main.py  # 插件主程序路径，必须与上方插件入口代码的文件名相同
