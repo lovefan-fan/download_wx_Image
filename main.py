@@ -104,7 +104,7 @@ class MyPlugin(BasePlugin):
                                 await ctx.reply(MessageChain([f"图片MD5: {emoji_md5}"]))
                                 
                                 # 调用转发表情API
-                                to_user_name = ctx.event.from_wxid  # 使用 from_wxid 获取发送者ID
+                                to_user_name = ctx.event.sender_id  # 使用 sender_id 获取发送者ID
                                 result = await self.forward_emoji(emoji_md5, to_user_name)
                                 
                                 if result:
@@ -176,7 +176,7 @@ class MyPlugin(BasePlugin):
                                 await ctx.reply(MessageChain([f"图片MD5: {emoji_md5}"]))
                                 
                                 # 调用转发表情API
-                                to_user_name = ctx.event.from_wxid  # 使用 from_wxid 获取发送者ID
+                                to_user_name = ctx.event.sender_id  # 使用 sender_id 获取发送者ID
                                 result = await self.forward_emoji(emoji_md5, to_user_name)
                                 
                                 if result:
