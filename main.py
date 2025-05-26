@@ -99,19 +99,13 @@ class MyPlugin(BasePlugin):
                                 # 计算MD5
                                 emoji_md5 = self.calculate_md5(img_data)
                                 
-                                # 发送图片信息
-                                #await ctx.reply(MessageChain([f"处理第 {idx+1} 张图片，URL: {img_url}"]))
-                                #await ctx.reply(MessageChain([f"图片MD5: {emoji_md5}"]))
-                                
                                 # 调用转发表情API
-                                to_user_name = ctx.event.sender_id  # 使用 sender_id 获取发送者ID
+                                to_user_name = ctx.event.sender_id  # 使用发送者ID
                                 result = await self.forward_emoji(emoji_md5, to_user_name)
                                 
                                 if result:
                                     success_count += 1
-                                    #await ctx.reply(MessageChain([f"成功转发第 {idx+1} 张图片"]))
                                 else:
-                                    #await ctx.reply(MessageChain([f"转发第 {idx+1} 张图片失败"]))
                                     pass
                                 
                                 # 等待2秒
@@ -172,19 +166,13 @@ class MyPlugin(BasePlugin):
                                 # 计算MD5
                                 emoji_md5 = self.calculate_md5(img_data)
                                 
-                                # 发送图片信息
-                                #await ctx.reply(MessageChain([f"处理第 {idx+1} 张图片，URL: {img_url}"]))
-                                #await ctx.reply(MessageChain([f"图片MD5: {emoji_md5}"]))
-                                
                                 # 调用转发表情API
-                                to_user_name = ctx.event.sender_id  # 使用 sender_id 获取发送者ID
+                                to_user_name = ctx.event.group_id  # 使用群ID而不是发送者ID
                                 result = await self.forward_emoji(emoji_md5, to_user_name)
                                 
                                 if result:
                                     success_count += 1
-                                    #await ctx.reply(MessageChain([f"成功转发第 {idx+1} 张图片"]))
                                 else:
-                                    #await ctx.reply(MessageChain([f"转发第 {idx+1} 张图片失败"]))
                                     pass
                                 
                                 # 等待2秒
