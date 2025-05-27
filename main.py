@@ -167,7 +167,7 @@ class MyPlugin(BasePlugin):
                                 emoji_md5 = self.calculate_md5(img_data)
                                 
                                 # 调用转发表情API
-                                to_user_name = ctx.event.group_id  # 使用群ID而不是发送者ID
+                                to_user_name = ctx.event.chat_id  # 使用 chat_id 获取群ID
                                 result = await self.forward_emoji(emoji_md5, to_user_name)
                                 
                                 if result:
