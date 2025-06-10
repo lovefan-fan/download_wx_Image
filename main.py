@@ -16,15 +16,16 @@ class MyPlugin(BasePlugin):
 
     # 插件加载时触发
     def __init__(self, host: APIHost):
+        super().__init__(host)
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
-        self.api_url = "http://192.168.0.246:9090/message/ForwardEmoji"
-        self.api_key = "10dca0e1-8c7e-41d1-8b5c-4a64b63c39cd"
-
-    # 异步初始化
-    async def initialize(self):
-        pass
+        # 从适配器配置中获取 WeChatPad 的 URL
+        for adapter in self.host.adapters:
+            if hasattr(adapter, 'config') and 'wechatpad_url' in adapter.config:
+                self.api_url = f"{adapter.config['wechatpad_url']}/message/ForwardEmoji"
+                self.api_key = adapter.config.get('token', '')
+                break
 
     def calculate_md5(self, data):
         """计算数据的MD5值"""
@@ -56,6 +57,40 @@ class MyPlugin(BasePlugin):
             self.ap.logger.error(f"调用转发表情API失败：{str(e)}")
             return None
 
+    async def send_text(self, to_user_name: str, content: str):
+        """发送文本消息"""
+        try:
+            headers = {
+                'accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+            
+            data = {
+                "MsgItem": [
+                    {
+                        "AtWxIDList": [],
+                        "ImageContent": "",
+                        "MsgType": 1,  # 文本消息类型
+                        "TextContent": content,
+                        "ToUserName": to_user_name
+                    }
+                ]
+            }
+            
+            # 从适配器配置中获取 WeChatPad 的 URL
+            for adapter in self.host.adapters:
+                if hasattr(adapter, 'config') and 'wechatpad_url' in adapter.config:
+                    url = f"{adapter.config['wechatpad_url']}/message/SendTextMessage"
+                    response = requests.post(url, headers=headers, json=data)
+                    response.raise_for_status()
+                    return response.json()
+            
+            self.ap.logger.error("未找到 WeChatPad 配置")
+            return None
+        except Exception as e:
+            self.ap.logger.error(f"发送文本消息失败：{str(e)}")
+            return None
+
     # 当收到个人消息时触发
     @handler(PersonNormalMessageReceived)
     async def person_normal_message_received(self, ctx: EventContext):
@@ -65,7 +100,10 @@ class MyPlugin(BasePlugin):
             # 提取URL
             url_match = re.search(r'/img\s*(https?://[^\s]+)', msg)
             if not url_match:
-                ctx.add_return("reply", ["请提供有效的微信文章链接，格式：/img 链接"])
+                await self.send_text(
+                    to_user_name=ctx.event.sender_id,
+                    content="请提供有效的微信文章链接，格式：/img 链接"
+                )
                 ctx.prevent_default()
                 return
 
@@ -77,7 +115,10 @@ class MyPlugin(BasePlugin):
                 img_tags = soup.find_all('img')
                 
                 if not img_tags:
-                    ctx.add_return("reply", ["未找到图片"])
+                    await self.send_text(
+                        to_user_name=ctx.event.sender_id,
+                        content="未找到图片"
+                    )
                     ctx.prevent_default()
                     return
 
@@ -85,7 +126,10 @@ class MyPlugin(BasePlugin):
                 ctx.prevent_default()
                 
                 # 发送开始下载的消息
-                await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始处理..."]))
+                await self.send_text(
+                    to_user_name=ctx.event.sender_id,
+                    content=f"找到 {len(img_tags)} 张图片，开始处理..."
+                )
                 
                 success_count = 0
                 for idx, img in enumerate(img_tags):
@@ -105,8 +149,6 @@ class MyPlugin(BasePlugin):
                                 
                                 if result:
                                     success_count += 1
-                                else:
-                                    pass
                                 
                                 # 等待2秒
                                 await asyncio.sleep(2)
@@ -116,11 +158,17 @@ class MyPlugin(BasePlugin):
                             self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
                 # 发送完成消息
-                await ctx.reply(MessageChain([f"处理完成，成功转发 {success_count} 张图片"]))
+                await self.send_text(
+                    to_user_name=ctx.event.sender_id,
+                    content=f"处理完成，成功转发 {success_count} 张图片"
+                )
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
-                await ctx.reply(MessageChain([f"处理失败：{str(e)}"]))
+                await self.send_text(
+                    to_user_name=ctx.event.sender_id,
+                    content=f"处理失败：{str(e)}"
+                )
                 return
 
     # 当收到群消息时触发
@@ -132,7 +180,10 @@ class MyPlugin(BasePlugin):
             # 提取URL
             url_match = re.search(r'/img\s*(https?://[^\s]+)', msg)
             if not url_match:
-                ctx.add_return("reply", ["请提供有效的微信文章链接，格式：/img 链接"])
+                await self.send_text(
+                    to_user_name=ctx.event.room_id,
+                    content="请提供有效的微信文章链接，格式：/img 链接"
+                )
                 ctx.prevent_default()
                 return
 
@@ -144,7 +195,10 @@ class MyPlugin(BasePlugin):
                 img_tags = soup.find_all('img')
                 
                 if not img_tags:
-                    ctx.add_return("reply", ["未找到图片"])
+                    await self.send_text(
+                        to_user_name=ctx.event.room_id,
+                        content="未找到图片"
+                    )
                     ctx.prevent_default()
                     return
 
@@ -152,7 +206,10 @@ class MyPlugin(BasePlugin):
                 ctx.prevent_default()
                 
                 # 发送开始下载的消息
-                await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始处理..."]))
+                await self.send_text(
+                    to_user_name=ctx.event.room_id,
+                    content=f"找到 {len(img_tags)} 张图片，开始处理..."
+                )
                 
                 success_count = 0
                 for idx, img in enumerate(img_tags):
@@ -167,13 +224,11 @@ class MyPlugin(BasePlugin):
                                 emoji_md5 = self.calculate_md5(img_data)
                                 
                                 # 调用转发表情API
-                                to_user_name = ctx.event.launcher_id
+                                to_user_name = ctx.event.room_id
                                 result = await self.forward_emoji(emoji_md5, to_user_name)
                                 
                                 if result:
                                     success_count += 1
-                                else:
-                                    pass
                                 
                                 # 等待2秒
                                 await asyncio.sleep(2)
@@ -183,11 +238,17 @@ class MyPlugin(BasePlugin):
                             self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
                 # 发送完成消息
-                await ctx.reply(MessageChain([f"处理完成，成功转发 {success_count} 张图片"]))
+                await self.send_text(
+                    to_user_name=ctx.event.room_id,
+                    content=f"处理完成，成功转发 {success_count} 张图片"
+                )
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
-                await ctx.reply(MessageChain([f"处理失败：{str(e)}"]))
+                await self.send_text(
+                    to_user_name=ctx.event.room_id,
+                    content=f"处理失败：{str(e)}"
+                )
                 return
 
     # 插件卸载时触发
