@@ -33,7 +33,7 @@ class MyPlugin(BasePlugin):
             return None
             
         try:
-            return await adapter.bot.send_emoji_message(
+            return adapter.bot.send_emoji_message(
                 to_wxid=to_user_name,
                 emoji_md5=emoji_md5,
                 emoji_size=0
@@ -49,7 +49,7 @@ class MyPlugin(BasePlugin):
             return None
             
         try:
-            return await adapter.bot.send_text_message(
+            return adapter.bot.send_text_message(
                 to_wxid=to_user_name,
                 message=content
             )
