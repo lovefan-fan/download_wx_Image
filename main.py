@@ -84,7 +84,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
                     content="请提供有效的微信文章链接，格式：/img 链接",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.adapter
                 )
                 ctx.prevent_default()
                 return
@@ -100,7 +100,7 @@ class MyPlugin(BasePlugin):
                     await self.send_text(
                         to_user_name=ctx.event.sender_id,
                         content="未找到图片",
-                        adapter=ctx.query.adapter
+                        adapter=ctx.event.adapter
                     )
                     ctx.prevent_default()
                     return
@@ -112,7 +112,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
                     content=f"找到 {len(img_tags)} 张图片，开始处理...",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.adapter
                 )
                 
                 success_count = 0
@@ -129,7 +129,7 @@ class MyPlugin(BasePlugin):
                                 
                                 # 调用转发表情API
                                 to_user_name = ctx.event.sender_id  # 使用发送者ID
-                                result = await self.forward_emoji(emoji_md5, to_user_name)
+                                result = await self.forward_emoji(emoji_md5, to_user_name, ctx.event.adapter)
                                 
                                 if result:
                                     success_count += 1
@@ -144,14 +144,16 @@ class MyPlugin(BasePlugin):
                 # 发送完成消息
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
-                    content=f"处理完成，成功转发 {success_count} 张图片"
+                    content=f"处理完成，成功转发 {success_count} 张图片",
+                    adapter=ctx.event.adapter
                 )
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
-                    content=f"处理失败：{str(e)}"
+                    content=f"处理失败：{str(e)}",
+                    adapter=ctx.event.adapter
                 )
                 return
 
@@ -166,7 +168,8 @@ class MyPlugin(BasePlugin):
             if not url_match:
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
-                    content="请提供有效的微信文章链接，格式：/img 链接"
+                    content="请提供有效的微信文章链接，格式：/img 链接",
+                    adapter=ctx.event.adapter
                 )
                 ctx.prevent_default()
                 return
@@ -181,7 +184,8 @@ class MyPlugin(BasePlugin):
                 if not img_tags:
                     await self.send_text(
                         to_user_name=ctx.event.room_id,
-                        content="未找到图片"
+                        content="未找到图片",
+                        adapter=ctx.event.adapter
                     )
                     ctx.prevent_default()
                     return
@@ -192,7 +196,8 @@ class MyPlugin(BasePlugin):
                 # 发送开始下载的消息
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
-                    content=f"找到 {len(img_tags)} 张图片，开始处理..."
+                    content=f"找到 {len(img_tags)} 张图片，开始处理...",
+                    adapter=ctx.event.adapter
                 )
                 
                 success_count = 0
@@ -209,7 +214,7 @@ class MyPlugin(BasePlugin):
                                 
                                 # 调用转发表情API
                                 to_user_name = ctx.event.room_id
-                                result = await self.forward_emoji(emoji_md5, to_user_name)
+                                result = await self.forward_emoji(emoji_md5, to_user_name, ctx.event.adapter)
                                 
                                 if result:
                                     success_count += 1
@@ -224,14 +229,16 @@ class MyPlugin(BasePlugin):
                 # 发送完成消息
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
-                    content=f"处理完成，成功转发 {success_count} 张图片"
+                    content=f"处理完成，成功转发 {success_count} 张图片",
+                    adapter=ctx.event.adapter
                 )
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
-                    content=f"处理失败：{str(e)}"
+                    content=f"处理失败：{str(e)}",
+                    adapter=ctx.event.adapter
                 )
                 return
 
