@@ -42,7 +42,14 @@ class MyPlugin(BasePlugin):
                 }
             ]
         }
-        await self.host.ap.http_client.post("/message/SendTextMessage", json=data)
+        url = f"{self.host.ap.config.get('wechatpad_url')}/message/SendTextMessage"
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+        return response.json()
 
     async def send_image(self, to_user_name: str, image_data: bytes):
         """发送图片消息"""
@@ -56,7 +63,14 @@ class MyPlugin(BasePlugin):
                 }
             ]
         }
-        await self.host.ap.http_client.post("/message/ForwardEmoji", json=data)
+        url = f"{self.host.ap.config.get('wechatpad_url')}/message/ForwardEmoji"
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+        return response.json()
 
     # 当收到个人消息时触发
     @handler(PersonNormalMessageReceived)
