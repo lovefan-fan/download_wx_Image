@@ -16,6 +16,8 @@ class MyPlugin(BasePlugin):
 
     # 插件加载时触发
     def __init__(self, host: APIHost):
+        self.host = host
+        self.config = host.config
         self.headers = {
             "User-Agent": self.config.get('user_agent', '')
         }
