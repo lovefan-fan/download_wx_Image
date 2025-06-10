@@ -17,19 +17,10 @@ class MyPlugin(BasePlugin):
     # 插件加载时触发
     def __init__(self, host: APIHost):
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            "User-Agent": self.config.get('user_agent', '')
         }
-        self.api_url = "http://192.168.0.246:9090/message/ForwardEmoji"
-        self.api_key = "10dca0e1-8c7e-41d1-8b5c-4a64b63c39cd"
-        
-        # 从配置中获取值
-        if hasattr(host, 'config'):
-            if 'user_agent' in host.config:
-                self.headers["User-Agent"] = host.config['user_agent']
-            if 'api_url' in host.config:
-                self.api_url = host.config['api_url']
-            if 'api_key' in host.config:
-                self.api_key = host.config['api_key']
+        self.api_url = self.config.get('api_url', '')
+        self.api_key = self.config.get('api_key', '')
 
     # 异步初始化
     async def initialize(self):
