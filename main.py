@@ -33,17 +33,11 @@ class MyPlugin(BasePlugin):
             return None
             
         try:
-            data = {
-                "EmojiList": [
-                    {
-                        "EmojiMd5": emoji_md5,
-                        "EmojiSize": 0,
-                        "ToUserName": to_user_name
-                    }
-                ]
-            }
-            
-            return await adapter.bot.forward_emoji(data)
+            return await adapter.bot.send_emoji_message(
+                to_wxid=to_user_name,
+                emoji_md5=emoji_md5,
+                emoji_size=0
+            )
         except Exception as e:
             self.ap.logger.error(f"调用转发表情API失败：{str(e)}")
             return None
@@ -55,19 +49,10 @@ class MyPlugin(BasePlugin):
             return None
             
         try:
-            data = {
-                "MsgItem": [
-                    {
-                        "AtWxIDList": [],
-                        "ImageContent": "",
-                        "MsgType": 1,  # 文本消息类型
-                        "TextContent": content,
-                        "ToUserName": to_user_name
-                    }
-                ]
-            }
-            
-            return await adapter.bot.send_text_message(data)
+            return await adapter.bot.send_text_message(
+                to_wxid=to_user_name,
+                message=content
+            )
         except Exception as e:
             self.ap.logger.error(f"发送文本消息失败：{str(e)}")
             return None
