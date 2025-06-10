@@ -21,24 +21,15 @@ class MyPlugin(BasePlugin):
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
-        self.wechatpad = None
-
-    # 异步初始化
-    async def initialize(self):
-        # 获取 WeChatPad 适配器
-        for adapter in self.host.adapters:
-            if isinstance(adapter, WeChatPadAdapter):
-                self.wechatpad = adapter
-                break
 
     def calculate_md5(self, data):
         """计算数据的MD5值"""
         return hashlib.md5(data).hexdigest()
 
-    async def forward_emoji(self, emoji_md5, to_user_name):
+    async def forward_emoji(self, emoji_md5, to_user_name, adapter):
         """调用转发表情API"""
-        if not self.wechatpad:
-            self.ap.logger.error("WeChatPad 适配器未找到")
+        if not isinstance(adapter, WeChatPadAdapter):
+            self.ap.logger.error("不是 WeChatPad 适配器")
             return None
             
         try:
@@ -52,15 +43,15 @@ class MyPlugin(BasePlugin):
                 ]
             }
             
-            return await self.wechatpad.bot.forward_emoji(data)
+            return await adapter.bot.forward_emoji(data)
         except Exception as e:
             self.ap.logger.error(f"调用转发表情API失败：{str(e)}")
             return None
 
-    async def send_text(self, to_user_name: str, content: str):
+    async def send_text(self, to_user_name: str, content: str, adapter):
         """发送文本消息"""
-        if not self.wechatpad:
-            self.ap.logger.error("WeChatPad 适配器未找到")
+        if not isinstance(adapter, WeChatPadAdapter):
+            self.ap.logger.error("不是 WeChatPad 适配器")
             return None
             
         try:
@@ -76,7 +67,7 @@ class MyPlugin(BasePlugin):
                 ]
             }
             
-            return await self.wechatpad.bot.send_text_message(data)
+            return await adapter.bot.send_text_message(data)
         except Exception as e:
             self.ap.logger.error(f"发送文本消息失败：{str(e)}")
             return None
@@ -92,7 +83,8 @@ class MyPlugin(BasePlugin):
             if not url_match:
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
-                    content="请提供有效的微信文章链接，格式：/img 链接"
+                    content="请提供有效的微信文章链接，格式：/img 链接",
+                    adapter=ctx.query.adapter
                 )
                 ctx.prevent_default()
                 return
@@ -107,7 +99,8 @@ class MyPlugin(BasePlugin):
                 if not img_tags:
                     await self.send_text(
                         to_user_name=ctx.event.sender_id,
-                        content="未找到图片"
+                        content="未找到图片",
+                        adapter=ctx.query.adapter
                     )
                     ctx.prevent_default()
                     return
@@ -118,7 +111,8 @@ class MyPlugin(BasePlugin):
                 # 发送开始下载的消息
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
-                    content=f"找到 {len(img_tags)} 张图片，开始处理..."
+                    content=f"找到 {len(img_tags)} 张图片，开始处理...",
+                    adapter=ctx.query.adapter
                 )
                 
                 success_count = 0
