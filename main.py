@@ -8,6 +8,7 @@ import re
 import asyncio
 import hashlib
 import json
+import base64
 
 
 # 注册插件
@@ -18,44 +19,12 @@ class MyPlugin(BasePlugin):
     def __init__(self, host: APIHost):
         super().__init__(host)
         self.headers = {
-            "User-Agent": self.config.get('user_agent', '')
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
-        self.api_url = self.config.get('api_url', '')
-        self.api_key = self.config.get('api_key', '')
 
     # 异步初始化
     async def initialize(self):
         pass
-
-    def calculate_md5(self, data):
-        """计算数据的MD5值"""
-        return hashlib.md5(data).hexdigest()
-
-    async def forward_emoji(self, emoji_md5, to_user_name):
-        """调用转发表情API"""
-        try:
-            headers = {
-                'accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-            
-            data = {
-                "EmojiList": [
-                    {
-                        "EmojiMd5": emoji_md5,
-                        "EmojiSize": 0,
-                        "ToUserName": to_user_name
-                    }
-                ]
-            }
-            
-            url = f"{self.api_url}?key={self.api_key}"
-            response = requests.post(url, headers=headers, json=data)
-            response.raise_for_status()
-            return response.json()
-        except Exception as e:
-            self.ap.logger.error(f"调用转发表情API失败：{str(e)}")
-            return None
 
     # 当收到个人消息时触发
     @handler(PersonNormalMessageReceived)
@@ -97,18 +66,11 @@ class MyPlugin(BasePlugin):
                             img_response = requests.get(img_url, headers=self.headers)
                             if img_response.status_code == 200:
                                 img_data = img_response.content
-                                # 计算MD5
-                                emoji_md5 = self.calculate_md5(img_data)
-                                
-                                # 调用转发表情API
-                                to_user_name = ctx.event.sender_id  # 使用发送者ID
-                                result = await self.forward_emoji(emoji_md5, to_user_name)
-                                
-                                if result:
-                                    success_count += 1
-                                else:
-                                    pass
-                                
+                                # 创建图片消息
+                                image_msg = Image(base64=f"data:image/png;base64,{base64.b64encode(img_data).decode('utf-8')}")
+                                # 发送图片
+                                await ctx.reply(MessageChain([image_msg]))
+                                success_count += 1
                                 # 等待2秒
                                 await asyncio.sleep(2)
                             else:
@@ -117,7 +79,7 @@ class MyPlugin(BasePlugin):
                             self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
                 # 发送完成消息
-                await ctx.reply(MessageChain([f"处理完成，成功转发 {success_count} 张图片"]))
+                await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
@@ -164,18 +126,11 @@ class MyPlugin(BasePlugin):
                             img_response = requests.get(img_url, headers=self.headers)
                             if img_response.status_code == 200:
                                 img_data = img_response.content
-                                # 计算MD5
-                                emoji_md5 = self.calculate_md5(img_data)
-                                
-                                # 调用转发表情API
-                                to_user_name = ctx.event.launcher_id
-                                result = await self.forward_emoji(emoji_md5, to_user_name)
-                                
-                                if result:
-                                    success_count += 1
-                                else:
-                                    pass
-                                
+                                # 创建图片消息
+                                image_msg = Image(base64=f"data:image/png;base64,{base64.b64encode(img_data).decode('utf-8')}")
+                                # 发送图片
+                                await ctx.reply(MessageChain([image_msg]))
+                                success_count += 1
                                 # 等待2秒
                                 await asyncio.sleep(2)
                             else:
@@ -184,7 +139,7 @@ class MyPlugin(BasePlugin):
                             self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
                 # 发送完成消息
-                await ctx.reply(MessageChain([f"处理完成，成功转发 {success_count} 张图片"]))
+                await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
