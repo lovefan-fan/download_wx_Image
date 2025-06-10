@@ -84,7 +84,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
                     content="请提供有效的微信文章链接，格式：/img 链接",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 ctx.prevent_default()
                 return
@@ -100,7 +100,7 @@ class MyPlugin(BasePlugin):
                     await self.send_text(
                         to_user_name=ctx.event.sender_id,
                         content="未找到图片",
-                        adapter=ctx.query.adapter
+                        adapter=ctx.event.query.adapter
                     )
                     ctx.prevent_default()
                     return
@@ -112,7 +112,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
                     content=f"找到 {len(img_tags)} 张图片，开始处理...",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 
                 success_count = 0
@@ -128,7 +128,7 @@ class MyPlugin(BasePlugin):
                                 await self.send_image(
                                     to_user_name=ctx.event.sender_id,
                                     image_data=img_data,
-                                    adapter=ctx.query.adapter
+                                    adapter=ctx.event.query.adapter
                                 )
                                 success_count += 1
                                 # 等待2秒
@@ -142,7 +142,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
                     content=f"处理完成，成功发送 {success_count} 张图片",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 
             except Exception as e:
@@ -150,7 +150,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
                     content=f"处理失败：{str(e)}",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 return
 
@@ -166,7 +166,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
                     content="请提供有效的微信文章链接，格式：/img 链接",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 ctx.prevent_default()
                 return
@@ -182,7 +182,7 @@ class MyPlugin(BasePlugin):
                     await self.send_text(
                         to_user_name=ctx.event.room_id,
                         content="未找到图片",
-                        adapter=ctx.query.adapter
+                        adapter=ctx.event.query.adapter
                     )
                     ctx.prevent_default()
                     return
@@ -194,7 +194,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
                     content=f"找到 {len(img_tags)} 张图片，开始处理...",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 
                 success_count = 0
@@ -210,7 +210,7 @@ class MyPlugin(BasePlugin):
                                 await self.send_image(
                                     to_user_name=ctx.event.room_id,
                                     image_data=img_data,
-                                    adapter=ctx.query.adapter
+                                    adapter=ctx.event.query.adapter
                                 )
                                 success_count += 1
                                 # 等待2秒
@@ -224,7 +224,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
                     content=f"处理完成，成功发送 {success_count} 张图片",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 
             except Exception as e:
@@ -232,7 +232,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
                     content=f"处理失败：{str(e)}",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 return
 
