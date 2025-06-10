@@ -24,7 +24,7 @@ spec:
         zh_CN: 用于HTTP请求的用户代理
       type: string  # 配置项类型，支持 string, integer, float, boolean 等
       default: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'  # 配置项默认值
-      required: false  # 配置项是否必填
+      required: true  # 配置项是否必填
     - name: api_url
       label:
         en_US: API URL
