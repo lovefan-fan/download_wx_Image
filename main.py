@@ -29,7 +29,7 @@ class MyPlugin(BasePlugin):
         """计算数据的MD5值"""
         return hashlib.md5(data).hexdigest()
 
-    async def send_text(self, to_user_name: str, content: str):
+    async def send_text(self, to_user_name: str, content: str, adapter):
         """发送文本消息"""
         data = {
             "MsgItem": [
@@ -42,7 +42,7 @@ class MyPlugin(BasePlugin):
                 }
             ]
         }
-        url = f"{self.host.ap.config.get('wechatpad_url')}/message/SendTextMessage"
+        url = f"{adapter.config['wechatpad_url']}/message/SendTextMessage"
         headers = {
             'accept': 'application/json',
             'Content-Type': 'application/json'
@@ -51,7 +51,7 @@ class MyPlugin(BasePlugin):
         response.raise_for_status()
         return response.json()
 
-    async def send_image(self, to_user_name: str, image_data: bytes):
+    async def send_image(self, to_user_name: str, image_data: bytes, adapter):
         """发送图片消息"""
         emoji_md5 = self.calculate_md5(image_data)
         data = {
@@ -63,7 +63,7 @@ class MyPlugin(BasePlugin):
                 }
             ]
         }
-        url = f"{self.host.ap.config.get('wechatpad_url')}/message/ForwardEmoji"
+        url = f"{adapter.config['wechatpad_url']}/message/ForwardEmoji"
         headers = {
             'accept': 'application/json',
             'Content-Type': 'application/json'
@@ -83,7 +83,8 @@ class MyPlugin(BasePlugin):
             if not url_match:
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
-                    content="请提供有效的微信文章链接，格式：/img 链接"
+                    content="请提供有效的微信文章链接，格式：/img 链接",
+                    adapter=ctx.query.adapter
                 )
                 ctx.prevent_default()
                 return
@@ -98,7 +99,8 @@ class MyPlugin(BasePlugin):
                 if not img_tags:
                     await self.send_text(
                         to_user_name=ctx.event.sender_id,
-                        content="未找到图片"
+                        content="未找到图片",
+                        adapter=ctx.query.adapter
                     )
                     ctx.prevent_default()
                     return
@@ -109,7 +111,8 @@ class MyPlugin(BasePlugin):
                 # 发送开始下载的消息
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
-                    content=f"找到 {len(img_tags)} 张图片，开始处理..."
+                    content=f"找到 {len(img_tags)} 张图片，开始处理...",
+                    adapter=ctx.query.adapter
                 )
                 
                 success_count = 0
@@ -124,7 +127,8 @@ class MyPlugin(BasePlugin):
                                 # 发送图片
                                 await self.send_image(
                                     to_user_name=ctx.event.sender_id,
-                                    image_data=img_data
+                                    image_data=img_data,
+                                    adapter=ctx.query.adapter
                                 )
                                 success_count += 1
                                 # 等待2秒
@@ -137,14 +141,16 @@ class MyPlugin(BasePlugin):
                 # 发送完成消息
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
-                    content=f"处理完成，成功发送 {success_count} 张图片"
+                    content=f"处理完成，成功发送 {success_count} 张图片",
+                    adapter=ctx.query.adapter
                 )
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
-                    content=f"处理失败：{str(e)}"
+                    content=f"处理失败：{str(e)}",
+                    adapter=ctx.query.adapter
                 )
                 return
 
@@ -159,7 +165,8 @@ class MyPlugin(BasePlugin):
             if not url_match:
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
-                    content="请提供有效的微信文章链接，格式：/img 链接"
+                    content="请提供有效的微信文章链接，格式：/img 链接",
+                    adapter=ctx.query.adapter
                 )
                 ctx.prevent_default()
                 return
@@ -174,7 +181,8 @@ class MyPlugin(BasePlugin):
                 if not img_tags:
                     await self.send_text(
                         to_user_name=ctx.event.room_id,
-                        content="未找到图片"
+                        content="未找到图片",
+                        adapter=ctx.query.adapter
                     )
                     ctx.prevent_default()
                     return
@@ -185,7 +193,8 @@ class MyPlugin(BasePlugin):
                 # 发送开始下载的消息
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
-                    content=f"找到 {len(img_tags)} 张图片，开始处理..."
+                    content=f"找到 {len(img_tags)} 张图片，开始处理...",
+                    adapter=ctx.query.adapter
                 )
                 
                 success_count = 0
@@ -200,7 +209,8 @@ class MyPlugin(BasePlugin):
                                 # 发送图片
                                 await self.send_image(
                                     to_user_name=ctx.event.room_id,
-                                    image_data=img_data
+                                    image_data=img_data,
+                                    adapter=ctx.query.adapter
                                 )
                                 success_count += 1
                                 # 等待2秒
@@ -213,14 +223,16 @@ class MyPlugin(BasePlugin):
                 # 发送完成消息
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
-                    content=f"处理完成，成功发送 {success_count} 张图片"
+                    content=f"处理完成，成功发送 {success_count} 张图片",
+                    adapter=ctx.query.adapter
                 )
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
-                    content=f"处理失败：{str(e)}"
+                    content=f"处理失败：{str(e)}",
+                    adapter=ctx.query.adapter
                 )
                 return
 
