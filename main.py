@@ -1,6 +1,7 @@
 from pkg.plugin.context import register, handler, llm_func, BasePlugin, APIHost, EventContext
 from pkg.plugin.events import *  # 导入事件类
 from pkg.platform.types import *
+from pkg.platform.sources.wechatpad import WeChatPadAdapter
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -20,9 +21,15 @@ class MyPlugin(BasePlugin):
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
-        # 从插件配置中获取 WeChatPad 的 URL 和 key
-        self.api_url = self.ap.plugin_config.get('api_url', '')
-        self.api_key = self.ap.plugin_config.get('api_key', '')
+        self.wechatpad = None
+
+    # 异步初始化
+    async def initialize(self):
+        # 获取 WeChatPad 适配器
+        for adapter in self.host.adapters:
+            if isinstance(adapter, WeChatPadAdapter):
+                self.wechatpad = adapter
+                break
 
     def calculate_md5(self, data):
         """计算数据的MD5值"""
@@ -30,12 +37,11 @@ class MyPlugin(BasePlugin):
 
     async def forward_emoji(self, emoji_md5, to_user_name):
         """调用转发表情API"""
-        try:
-            headers = {
-                'accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
+        if not self.wechatpad:
+            self.ap.logger.error("WeChatPad 适配器未找到")
+            return None
             
+        try:
             data = {
                 "EmojiList": [
                     {
@@ -46,22 +52,18 @@ class MyPlugin(BasePlugin):
                 ]
             }
             
-            url = f"{self.api_url}?key={self.api_key}"
-            response = requests.post(url, headers=headers, json=data)
-            response.raise_for_status()
-            return response.json()
+            return await self.wechatpad.bot.forward_emoji(data)
         except Exception as e:
             self.ap.logger.error(f"调用转发表情API失败：{str(e)}")
             return None
 
     async def send_text(self, to_user_name: str, content: str):
         """发送文本消息"""
-        try:
-            headers = {
-                'accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
+        if not self.wechatpad:
+            self.ap.logger.error("WeChatPad 适配器未找到")
+            return None
             
+        try:
             data = {
                 "MsgItem": [
                     {
@@ -74,12 +76,7 @@ class MyPlugin(BasePlugin):
                 ]
             }
             
-            # 从插件配置中获取 WeChatPad 的 URL
-            base_url = self.api_url.replace('/message/ForwardEmoji', '')
-            url = f"{base_url}/message/SendTextMessage"
-            response = requests.post(url, headers=headers, json=data)
-            response.raise_for_status()
-            return response.json()
+            return await self.wechatpad.bot.send_text_message(data)
         except Exception as e:
             self.ap.logger.error(f"发送文本消息失败：{str(e)}")
             return None
