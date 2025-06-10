@@ -8,7 +8,6 @@ import re
 import asyncio
 import hashlib
 import json
-import base64
 
 
 # 注册插件
@@ -26,6 +25,39 @@ class MyPlugin(BasePlugin):
     async def initialize(self):
         pass
 
+    def calculate_md5(self, data):
+        """计算数据的MD5值"""
+        return hashlib.md5(data).hexdigest()
+
+    async def send_text(self, to_user_name: str, content: str):
+        """发送文本消息"""
+        data = {
+            "MsgItem": [
+                {
+                    "AtWxIDList": [],
+                    "ImageContent": "",
+                    "MsgType": 1,  # 文本消息类型
+                    "TextContent": content,
+                    "ToUserName": to_user_name
+                }
+            ]
+        }
+        await self.host.ap.http_client.post("/message/SendTextMessage", json=data)
+
+    async def send_image(self, to_user_name: str, image_data: bytes):
+        """发送图片消息"""
+        emoji_md5 = self.calculate_md5(image_data)
+        data = {
+            "EmojiList": [
+                {
+                    "EmojiMd5": emoji_md5,
+                    "EmojiSize": 0,
+                    "ToUserName": to_user_name
+                }
+            ]
+        }
+        await self.host.ap.http_client.post("/message/ForwardEmoji", json=data)
+
     # 当收到个人消息时触发
     @handler(PersonNormalMessageReceived)
     async def person_normal_message_received(self, ctx: EventContext):
@@ -35,7 +67,10 @@ class MyPlugin(BasePlugin):
             # 提取URL
             url_match = re.search(r'/img\s*(https?://[^\s]+)', msg)
             if not url_match:
-                ctx.add_return("reply", ["请提供有效的微信文章链接，格式：/img 链接"])
+                await self.send_text(
+                    to_user_name=ctx.event.sender_id,
+                    content="请提供有效的微信文章链接，格式：/img 链接"
+                )
                 ctx.prevent_default()
                 return
 
@@ -47,7 +82,10 @@ class MyPlugin(BasePlugin):
                 img_tags = soup.find_all('img')
                 
                 if not img_tags:
-                    ctx.add_return("reply", ["未找到图片"])
+                    await self.send_text(
+                        to_user_name=ctx.event.sender_id,
+                        content="未找到图片"
+                    )
                     ctx.prevent_default()
                     return
 
@@ -55,7 +93,10 @@ class MyPlugin(BasePlugin):
                 ctx.prevent_default()
                 
                 # 发送开始下载的消息
-                await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始处理..."]))
+                await self.send_text(
+                    to_user_name=ctx.event.sender_id,
+                    content=f"找到 {len(img_tags)} 张图片，开始处理..."
+                )
                 
                 success_count = 0
                 for idx, img in enumerate(img_tags):
@@ -66,10 +107,11 @@ class MyPlugin(BasePlugin):
                             img_response = requests.get(img_url, headers=self.headers)
                             if img_response.status_code == 200:
                                 img_data = img_response.content
-                                # 创建图片消息
-                                image_msg = Image(base64=f"data:image/png;base64,{base64.b64encode(img_data).decode('utf-8')}")
                                 # 发送图片
-                                await ctx.reply(MessageChain([image_msg]))
+                                await self.send_image(
+                                    to_user_name=ctx.event.sender_id,
+                                    image_data=img_data
+                                )
                                 success_count += 1
                                 # 等待2秒
                                 await asyncio.sleep(2)
@@ -79,11 +121,17 @@ class MyPlugin(BasePlugin):
                             self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
                 # 发送完成消息
-                await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
+                await self.send_text(
+                    to_user_name=ctx.event.sender_id,
+                    content=f"处理完成，成功发送 {success_count} 张图片"
+                )
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
-                await ctx.reply(MessageChain([f"处理失败：{str(e)}"]))
+                await self.send_text(
+                    to_user_name=ctx.event.sender_id,
+                    content=f"处理失败：{str(e)}"
+                )
                 return
 
     # 当收到群消息时触发
@@ -95,7 +143,10 @@ class MyPlugin(BasePlugin):
             # 提取URL
             url_match = re.search(r'/img\s*(https?://[^\s]+)', msg)
             if not url_match:
-                ctx.add_return("reply", ["请提供有效的微信文章链接，格式：/img 链接"])
+                await self.send_text(
+                    to_user_name=ctx.event.room_id,
+                    content="请提供有效的微信文章链接，格式：/img 链接"
+                )
                 ctx.prevent_default()
                 return
 
@@ -107,7 +158,10 @@ class MyPlugin(BasePlugin):
                 img_tags = soup.find_all('img')
                 
                 if not img_tags:
-                    ctx.add_return("reply", ["未找到图片"])
+                    await self.send_text(
+                        to_user_name=ctx.event.room_id,
+                        content="未找到图片"
+                    )
                     ctx.prevent_default()
                     return
 
@@ -115,7 +169,10 @@ class MyPlugin(BasePlugin):
                 ctx.prevent_default()
                 
                 # 发送开始下载的消息
-                await ctx.reply(MessageChain([f"找到 {len(img_tags)} 张图片，开始处理..."]))
+                await self.send_text(
+                    to_user_name=ctx.event.room_id,
+                    content=f"找到 {len(img_tags)} 张图片，开始处理..."
+                )
                 
                 success_count = 0
                 for idx, img in enumerate(img_tags):
@@ -126,10 +183,11 @@ class MyPlugin(BasePlugin):
                             img_response = requests.get(img_url, headers=self.headers)
                             if img_response.status_code == 200:
                                 img_data = img_response.content
-                                # 创建图片消息
-                                image_msg = Image(base64=f"data:image/png;base64,{base64.b64encode(img_data).decode('utf-8')}")
                                 # 发送图片
-                                await ctx.reply(MessageChain([image_msg]))
+                                await self.send_image(
+                                    to_user_name=ctx.event.room_id,
+                                    image_data=img_data
+                                )
                                 success_count += 1
                                 # 等待2秒
                                 await asyncio.sleep(2)
@@ -139,11 +197,17 @@ class MyPlugin(BasePlugin):
                             self.ap.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
                 
                 # 发送完成消息
-                await ctx.reply(MessageChain([f"处理完成，成功发送 {success_count} 张图片"]))
+                await self.send_text(
+                    to_user_name=ctx.event.room_id,
+                    content=f"处理完成，成功发送 {success_count} 张图片"
+                )
                 
             except Exception as e:
                 self.ap.logger.error(f"处理失败：{str(e)}")
-                await ctx.reply(MessageChain([f"处理失败：{str(e)}"]))
+                await self.send_text(
+                    to_user_name=ctx.event.room_id,
+                    content=f"处理失败：{str(e)}"
+                )
                 return
 
     # 插件卸载时触发
