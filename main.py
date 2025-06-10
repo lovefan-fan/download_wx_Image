@@ -84,7 +84,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
                     content="请提供有效的微信文章链接，格式：/img 链接",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 ctx.prevent_default()
                 return
@@ -100,7 +100,7 @@ class MyPlugin(BasePlugin):
                     await self.send_text(
                         to_user_name=ctx.event.sender_id,
                         content="未找到图片",
-                        adapter=ctx.query.adapter
+                        adapter=ctx.event.query.adapter
                     )
                     ctx.prevent_default()
                     return
@@ -112,7 +112,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
                     content=f"找到 {len(img_tags)} 张图片，开始处理...",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 
                 success_count = 0
@@ -129,7 +129,7 @@ class MyPlugin(BasePlugin):
                                 
                                 # 调用转发表情API
                                 to_user_name = ctx.event.sender_id  # 使用发送者ID
-                                result = await self.forward_emoji(emoji_md5, to_user_name, ctx.query.adapter)
+                                result = await self.forward_emoji(emoji_md5, to_user_name, ctx.event.query.adapter)
                                 
                                 if result:
                                     success_count += 1
@@ -145,7 +145,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
                     content=f"处理完成，成功转发 {success_count} 张图片",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 
             except Exception as e:
@@ -153,7 +153,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.sender_id,
                     content=f"处理失败：{str(e)}",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 return
 
@@ -169,7 +169,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
                     content="请提供有效的微信文章链接，格式：/img 链接",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 ctx.prevent_default()
                 return
@@ -185,7 +185,7 @@ class MyPlugin(BasePlugin):
                     await self.send_text(
                         to_user_name=ctx.event.room_id,
                         content="未找到图片",
-                        adapter=ctx.query.adapter
+                        adapter=ctx.event.query.adapter
                     )
                     ctx.prevent_default()
                     return
@@ -197,7 +197,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
                     content=f"找到 {len(img_tags)} 张图片，开始处理...",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 
                 success_count = 0
@@ -214,7 +214,7 @@ class MyPlugin(BasePlugin):
                                 
                                 # 调用转发表情API
                                 to_user_name = ctx.event.room_id
-                                result = await self.forward_emoji(emoji_md5, to_user_name, ctx.query.adapter)
+                                result = await self.forward_emoji(emoji_md5, to_user_name, ctx.event.query.adapter)
                                 
                                 if result:
                                     success_count += 1
@@ -230,7 +230,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
                     content=f"处理完成，成功转发 {success_count} 张图片",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 
             except Exception as e:
@@ -238,7 +238,7 @@ class MyPlugin(BasePlugin):
                 await self.send_text(
                     to_user_name=ctx.event.room_id,
                     content=f"处理失败：{str(e)}",
-                    adapter=ctx.query.adapter
+                    adapter=ctx.event.query.adapter
                 )
                 return
 
