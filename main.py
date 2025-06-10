@@ -20,12 +20,9 @@ class MyPlugin(BasePlugin):
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
-        # 从适配器配置中获取 WeChatPad 的 URL
-        for adapter in self.host.adapters:
-            if hasattr(adapter, 'config') and 'wechatpad_url' in adapter.config:
-                self.api_url = f"{adapter.config['wechatpad_url']}/message/ForwardEmoji"
-                self.api_key = adapter.config.get('token', '')
-                break
+        # 从插件配置中获取 WeChatPad 的 URL 和 key
+        self.api_url = self.ap.plugin_config.get('api_url', '')
+        self.api_key = self.ap.plugin_config.get('api_key', '')
 
     def calculate_md5(self, data):
         """计算数据的MD5值"""
@@ -77,16 +74,12 @@ class MyPlugin(BasePlugin):
                 ]
             }
             
-            # 从适配器配置中获取 WeChatPad 的 URL
-            for adapter in self.host.adapters:
-                if hasattr(adapter, 'config') and 'wechatpad_url' in adapter.config:
-                    url = f"{adapter.config['wechatpad_url']}/message/SendTextMessage"
-                    response = requests.post(url, headers=headers, json=data)
-                    response.raise_for_status()
-                    return response.json()
-            
-            self.ap.logger.error("未找到 WeChatPad 配置")
-            return None
+            # 从插件配置中获取 WeChatPad 的 URL
+            base_url = self.api_url.replace('/message/ForwardEmoji', '')
+            url = f"{base_url}/message/SendTextMessage"
+            response = requests.post(url, headers=headers, json=data)
+            response.raise_for_status()
+            return response.json()
         except Exception as e:
             self.ap.logger.error(f"发送文本消息失败：{str(e)}")
             return None
