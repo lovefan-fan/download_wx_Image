@@ -1,0 +1,51 @@
+apiVersion: v1  # 不要改动
+kind: Plugin  # 不要改动
+metadata:
+  # author 和 name 唯一确定一个插件
+  author: lovefan-fan  # 插件作者，修改为你的名称
+  name: WechatImageDownloader  # 插件名称，修改为你的插件名称
+  repository: 'https://github.com/lovefan-fan/download_wx_Image'  # 插件仓库地址，修改为你的插件 GitHub 仓库地址
+  version: 0.2.0
+  description:  # 插件简介，修改为你的插件简介，支持多语言
+    en_US: Plugin for downloading images from WeChat articles
+    zh_CN: 微信文章图片下载插件
+  label:  # 插件显示名称，支持多语言。在 WebUI 上会显示对应语言的 label
+    en_US: Wechat Image Downloader
+    zh_CN: 微信图片下载器
+spec:
+  # 插件配置（可选），可配置多项
+  config:
+    - name: user_agent  # 配置项名称
+      label:  # 配置项显示名称，支持多语言
+        en_US: User Agent
+        zh_CN: 用户代理
+      description:  # 配置项描述，支持多语言
+        en_US: User agent for HTTP requests
+        zh_CN: 用于HTTP请求的用户代理
+      type: string  # 配置项类型，支持 string, integer, float, boolean 等
+      default: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'  # 配置项默认值
+      required: true  # 配置项是否必填
+    - name: api_url
+      label:
+        en_US: API URL
+        zh_CN: API地址
+      description:
+        en_US: URL for the emoji forwarding API
+        zh_CN: 表情转发API的地址
+      type: string
+      default: 'http://192.168.0.246:9090/message/ForwardEmoji'
+      required: true
+    - name: api_key
+      label:
+        en_US: API Key
+        zh_CN: API密钥
+      description:
+        en_US: API key for authentication
+        zh_CN: 用于认证的API密钥
+      type: string
+      default: ''
+      required: true
+execution:
+  python:
+    path: main.py  # 插件主程序路径，必须与上方插件入口代码的文件名相同
+    attr: MyPlugin  # 插件类名，必须与上方代码中声明的类名相同
