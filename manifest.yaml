@@ -25,26 +25,6 @@ spec:
       type: string  # 配置项类型，支持 string, integer, float, boolean 等
       default: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'  # 配置项默认值
       required: true  # 配置项是否必填
-    - name: api_url
-      label:
-        en_US: API URL
-        zh_CN: API地址
-      description:
-        en_US: URL for the emoji forwarding API
-        zh_CN: 表情转发API的地址
-      type: string
-      default: 'http://192.168.0.246:9090/message/ForwardEmoji'
-      required: true
-    - name: api_key
-      label:
-        en_US: API Key
-        zh_CN: API密钥
-      description:
-        en_US: API key for authentication
-        zh_CN: 用于认证的API密钥
-      type: string
-      default: ''
-      required: true
 execution:
   python:
     path: main.py  # 插件主程序路径，必须与上方插件入口代码的文件名相同
