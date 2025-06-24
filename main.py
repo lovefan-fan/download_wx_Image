@@ -180,6 +180,15 @@ class MyPlugin(BasePlugin):
             ctx.prevent_default()
             await self.handle_img_command(ctx, ctx.event.sender_id, msg)
             return
+        
+        if msg.startswith("/id"):
+            ctx.prevent_default()
+            await self.send_text(
+                to_user_name=ctx.event.sender_id,
+                content=f"你的ID是: {ctx.event.sender_id}",
+                adapter=ctx.event.query.adapter
+            )
+            return
 
     # 当收到群消息时触发
     @handler(GroupNormalMessageReceived)
@@ -190,6 +199,15 @@ class MyPlugin(BasePlugin):
             # 阻止默认行为
             ctx.prevent_default()
             await self.handle_img_command(ctx, ctx.event.room_id, msg)
+            return
+        
+        if msg.startswith("/id"):
+            ctx.prevent_default()
+            await self.send_text(
+                to_user_name=ctx.event.room_id,
+                content=f"本群ID是: {ctx.event.room_id}\n你的ID是: {ctx.event.sender_id}",
+                adapter=ctx.event.query.adapter
+            )
             return
 
     # 插件卸载时触发
