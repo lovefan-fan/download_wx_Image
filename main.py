@@ -15,6 +15,10 @@ import random
 import time
 from typing import Optional, List, Dict
 
+'''
+sender_id: 发送者ID
+launcher_id: 发送者群ID
+'''
 
 # 注册插件
 @register(name="WechatImageDownloader", description="下载微信文章图片", version="0.2.0", author="lovefan-fan")
@@ -205,7 +209,7 @@ class MyPlugin(BasePlugin):
             ctx.prevent_default()
             await self.send_text(
                 to_user_name=ctx.event.launcher_id,
-                content=f"你的ID是: {ctx.event.launcher_id}",
+                content=f"你的ID是: {ctx.event.sender_id}",
                 adapter=ctx.event.query.adapter
             )
             return
