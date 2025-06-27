@@ -198,14 +198,14 @@ class MyPlugin(BasePlugin):
         if msg.startswith("/img"):
             # 阻止默认行为
             ctx.prevent_default()
-            await self.handle_img_command(ctx, ctx.event.sender_id, msg)
+            await self.handle_img_command(ctx, ctx.event.launcher_id, msg)
             return
         
         if msg.startswith("/id"):
             ctx.prevent_default()
             await self.send_text(
-                to_user_name=ctx.event.sender_id,
-                content=f"你的ID是: {ctx.event.sender_id}",
+                to_user_name=ctx.event.launcher_id,
+                content=f"你的ID是: {ctx.event.launcher_id}",
                 adapter=ctx.event.query.adapter
             )
             return
