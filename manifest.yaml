@@ -7,8 +7,7 @@ metadata:
   repository: 'https://github.com/lovefan-fan/download_wx_Image'  # 插件仓库地址，修改为你的插件 GitHub 仓库地址
   version: 0.2.0
   description:  # 插件简介，修改为你的插件简介，支持多语言
-    en_US: Plugin for downloading images from WeChat articles
-    zh_CN: 微信文章图片下载插件
+    zh_CN: 下载微信文章图片
   label:  # 插件显示名称，支持多语言。在 WebUI 上会显示对应语言的 label
     en_US: Wechat Image Downloader
     zh_CN: 微信图片下载器
