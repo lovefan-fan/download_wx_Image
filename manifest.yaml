@@ -1,0 +1,47 @@
+apiVersion: v1  # 不要改动
+kind: Plugin  # 不要改动
+metadata:
+  # author 和 name 唯一确定一个插件
+  author: lovefan-fan  # 插件作者，修改为你的名称
+  name: WechatImageDownloader  # 插件名称，修改为你的插件名称
+  repository: 'https://github.com/lovefan-fan/download_wx_Image'  # 插件仓库地址，修改为你的插件 GitHub 仓库地址
+  version: 0.3.0
+  description:  # 插件简介，修改为你的插件简介，支持多语言
+    zh_CN: 下载微信文章图片
+  label:  # 插件显示名称，支持多语言。在 WebUI 上会显示对应语言的 label
+    en_US: Wechat Image Downloader
+    zh_CN: 微信图片下载器
+spec:
+  # 插件配置（可选），可配置多项
+  config:
+    - name: qinglong_url  # 配置项名称
+      label:  # 配置项显示名称，支持多语言
+        en_US: qinglong_url
+        zh_CN: 青龙地址
+      description:  # 配置项描述，支持多语言
+        zh_CN: 青龙地址
+      type: string  # 配置项类型，支持 string, integer, float, boolean 等
+      default: ''  # 配置项默认值
+      required: true  # 配置项是否必填
+    - name: client_id  # 配置项名称
+      label:  # 配置项显示名称，支持多语言
+        en_US: client_id
+        zh_CN: 应用id
+      description:  # 配置项描述，支持多语言
+        zh_CN: 青龙应用id
+      type: string  # 配置项类型，支持 string, integer, float, boolean 等
+      default: ''  # 配置项默认值
+      required: true  # 配置项是否必填
+    - name: client_secret  # 配置项名称
+      label:  # 配置项显示名称，支持多语言
+        en_US: client_secret
+        zh_CN: 应用密钥
+      description:  # 配置项描述，支持多语言
+        zh_CN: 青龙应用密钥
+      type: string  # 配置项类型，支持 string, integer, float, boolean 等
+      default: ''  # 配置项默认值
+      required: true  # 配置项是否必填
+execution:
+  python:
+    path: main.py  # 插件主程序路径，必须与上方插件入口代码的文件名相同
+    attr: MyPlugin  # 插件类名，必须与上方代码中声明的类名相同

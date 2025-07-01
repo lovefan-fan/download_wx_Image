@@ -14,14 +14,14 @@ from urllib3.util.retry import Retry
 import random
 import time
 from typing import Optional, List, Dict
-
+from qinglong_api import QingLongAPI
 '''
 sender_id: 发送者ID
 launcher_id: 发送者群ID
 '''
 
 # 注册插件
-@register(name="WechatImageDownloader", description="下载微信文章图片", version="0.2.0", author="lovefan-fan")
+@register(name="WechatImageDownloader")
 class MyPlugin(BasePlugin):
 
     # 插件加载时触发
@@ -30,7 +30,9 @@ class MyPlugin(BasePlugin):
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
-        
+        # self.qinglong_url = self.host.get_config("qinglong_url")
+        # self.client_id = self.host.get_config("client_id")
+        # self.client_secret = self.host.get_config("client_secret")
         # 配置请求会话
         self.session = requests.Session()
         retry_strategy = Retry(
@@ -47,21 +49,6 @@ class MyPlugin(BasePlugin):
         
         # 请求超时设置（秒）
         self.timeout = (5, 10)  # (连接超时, 读取超时)
-
-    def make_request(self, method: str, url: str, **kwargs) -> Optional[requests.Response]:
-        """统一的请求处理方法，包含重试和超时机制"""
-        try:
-            # 添加超时设置
-            kwargs['timeout'] = self.timeout
-            # 确保使用配置的请求头
-            if 'headers' not in kwargs:
-                kwargs['headers'] = self.headers
-            response = self.session.request(method, url, **kwargs)
-            response.raise_for_status()
-            return response
-        except requests.exceptions.RequestException as e:
-            self.ap.logger.error(f"请求失败 ({method} {url}): {str(e)}")
-            return None
 
     def calculate_md5(self, data):
         """计算数据的MD5值"""
@@ -178,7 +165,49 @@ class MyPlugin(BasePlugin):
     @handler(PersonNormalMessageReceived)
     async def person_normal_message_received(self, ctx: EventContext):
         msg = ctx.event.text_message
-        
+        user_id = ctx.event.sender_id
+        # 新增/小米命令逻辑
+        if not hasattr(self, '_xiaomi_state'):
+            self._xiaomi_state = {}
+        if msg.startswith("/小米"):
+            ctx.prevent_default()
+            self._xiaomi_state[user_id] = {'step': 1, 'data': {}}
+            await self.send_text(
+                to_user_name=user_id,
+                content="请发送passToken",
+                adapter=ctx.event.query.adapter
+            )
+            return
+        # 依次接收passToken、userId
+        if user_id in self._xiaomi_state:
+            state = self._xiaomi_state[user_id]
+            if state['step'] == 1:
+                state['data']['passToken'] = msg.strip()
+                state['step'] = 2
+                await self.send_text(
+                    to_user_name=user_id,
+                    content="请发送userId",
+                    adapter=ctx.event.query.adapter
+                )
+                return
+            elif state['step'] == 2:
+                state['data']['userId'] = msg.strip()
+                state['data']['wxid'] = user_id  # 自动获取
+                # 调用青龙API
+                ql = QingLongAPI(
+                    self.host.get_config("qinglong_url"),
+                    self.host.get_config("client_id"),
+                    self.host.get_config("client_secret")
+                )
+                env_value = str(state['data'])
+                ql.update_env('xiaomi', env_value)
+                await self.send_text(
+                    to_user_name=user_id,
+                    content="已提交到青龙环境变量！",
+                    adapter=ctx.event.query.adapter
+                )
+                del self._xiaomi_state[user_id]
+                return
         if msg.startswith("/img"):
             # 阻止默认行为
             ctx.prevent_default()
