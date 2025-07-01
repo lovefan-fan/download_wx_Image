@@ -21,8 +21,8 @@ launcher_id: 发送者群ID
 '''
 
 # 注册插件
-@register(name="WechatImageDownloader")
-class MyPlugin(BasePlugin):
+@register(name="WechatImageDownloader", description="下载微信文章图片", version="0.3.0", author="lovefan-fan")
+class WechatImageDownloader(BasePlugin):
 
     # 插件加载时触发
     def __init__(self, host: APIHost):
