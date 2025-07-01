@@ -1,5 +1,5 @@
 import asyncio
-from main import MyPlugin
+from main import WechatImageDownloader
 from mock_host import APIHost
 from pkg.platform.types import PersonNormalMessageReceived, MessageChain, Image
 from pkg.plugin.context import EventContext
@@ -25,7 +25,7 @@ async def main():
     host = APIHost()
     
     # 创建插件实例
-    plugin = MyPlugin(host)
+    plugin = WechatImageDownloader(host)
     
     # 初始化插件
     await plugin.initialize()
