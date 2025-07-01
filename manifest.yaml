@@ -5,7 +5,7 @@ metadata:
   author: lovefan-fan  # 插件作者，修改为你的名称
   name: WechatImageDownloader  # 插件名称，修改为你的插件名称
   repository: 'https://github.com/lovefan-fan/download_wx_Image'  # 插件仓库地址，修改为你的插件 GitHub 仓库地址
-  version: 0.3.0
+  version: 0.4.0
   description:  # 插件简介，修改为你的插件简介，支持多语言
     en_US: Download Wechat Article Images
     zh_CN: 下载微信文章图片
@@ -45,4 +45,4 @@ spec:
 execution:
   python:
     path: main.py  # 插件主程序路径，必须与上方插件入口代码的文件名相同
-    attr: WechatImageDownloader  # 插件类名，必须与上方代码中声明的类名相同
+    attr: WechatImageDownloaderPlugin  # 插件类名，必须与上方代码中声明的类名相同
