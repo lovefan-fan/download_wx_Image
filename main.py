@@ -14,7 +14,7 @@ from urllib3.util.retry import Retry
 import random
 import time
 from typing import Optional, List, Dict
-from qinglong_api import QingLongAPI
+from .qinglong_api import QingLongAPI
 '''
 sender_id: 发送者ID
 launcher_id: 发送者群ID
