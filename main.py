@@ -165,34 +165,36 @@ class WechatImageDownloader(BasePlugin):
     @handler(PersonNormalMessageReceived)
     async def person_normal_message_received(self, ctx: EventContext):
         msg = ctx.event.text_message
-        user_id = ctx.event.sender_id
+        wxid = ctx.event.sender_id  # 这里改名
         # 新增/小米命令逻辑
         if not hasattr(self, '_xiaomi_state'):
             self._xiaomi_state = {}
         if msg.startswith("/小米"):
             ctx.prevent_default()
-            self._xiaomi_state[user_id] = {'step': 1, 'data': {}}
+            self._xiaomi_state[wxid] = {'step': 1, 'data': {}}
             await self.send_text(
-                to_user_name=user_id,
+                to_user_name=wxid,
                 content="请发送passToken",
                 adapter=ctx.event.query.adapter
             )
             return
         # 依次接收passToken、userId
-        if user_id in self._xiaomi_state:
-            state = self._xiaomi_state[user_id]
+        if wxid in self._xiaomi_state:
+            ctx.prevent_default()
+            state = self._xiaomi_state[wxid]
             if state['step'] == 1:
                 state['data']['passToken'] = msg.strip()
                 state['step'] = 2
                 await self.send_text(
-                    to_user_name=user_id,
+                    to_user_name=wxid,
                     content="请发送userId",
                     adapter=ctx.event.query.adapter
                 )
                 return
             elif state['step'] == 2:
+                ctx.prevent_default()
                 state['data']['userId'] = msg.strip()
-                state['data']['wxid'] = user_id  # 自动获取
+                state['data']['wxid'] = wxid  # 自动获取
                 # 调用青龙API
                 ql = QingLongAPI(
                     self.host.get_config("qinglong_url"),
@@ -202,11 +204,11 @@ class WechatImageDownloader(BasePlugin):
                 env_value = str(state['data'])
                 ql.update_env('xiaomi', env_value)
                 await self.send_text(
-                    to_user_name=user_id,
+                    to_user_name=wxid,
                     content="已提交到青龙环境变量！",
                     adapter=ctx.event.query.adapter
                 )
-                del self._xiaomi_state[user_id]
+                del self._xiaomi_state[wxid]
                 return
         if msg.startswith("/img"):
             # 阻止默认行为
