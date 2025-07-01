@@ -1,5 +1,5 @@
 import asyncio
-from main import WechatImageDownloader
+from .main import WechatImageDownloader
 from mock_host import APIHost
 from pkg.platform.types import PersonNormalMessageReceived, MessageChain, Image
 from pkg.plugin.context import EventContext
