@@ -12,9 +12,12 @@ from bs4 import BeautifulSoup
 import asyncio
 import hashlib
 import base64
+import logging
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 # 添加项目根目录到Python路径
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -159,9 +162,9 @@ class DefaultEventListener(EventListener):
                             # 等待2秒
                             await asyncio.sleep(2)
                         else:
-                            self.plugin.logger.error(f"下载图片失败，状态码：{img_response.status_code}")
+                            logger.error(f"下载图片失败，状态码：{img_response.status_code}")
                     except Exception as e:
-                        self.plugin.logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
+                        logger.error(f"处理第 {idx+1} 张图片失败：{str(e)}")
             
             # 发送完成消息
             await event_context.reply(
@@ -171,7 +174,7 @@ class DefaultEventListener(EventListener):
             )
             
         except Exception as e:
-            self.plugin.logger.error(f"处理失败：{str(e)}")
+            logger.error(f"处理失败：{str(e)}")
             await event_context.reply(
                 platform_message.MessageChain([
                     platform_message.Plain(text=f"处理失败：{str(e)}")
@@ -199,7 +202,7 @@ class DefaultEventListener(EventListener):
             
             # 解析抖音视频
             result = parse_video_url(dy_url)
-            self.plugin.logger.error(f"解析结果: {result}")
+            logger.info(f"解析结果: {result}")
             
             if 'title' in result:
                 # 提取最清晰的视频链接
@@ -214,12 +217,12 @@ class DefaultEventListener(EventListener):
                         quality_priority = {'超高清': 1, '720p': 2, '540p': 3}
                         best_video = min(videos, key=lambda v: quality_priority.get(v.get('type', ''), 999))
                         best_video_url = best_video.get('url')
-                        self.plugin.logger.error(f"提取到视频链接: {best_video_url}")
+                        logger.info(f"提取到视频链接: {best_video_url}")
                 
                 # 如果没有找到 video_fullinfo，使用默认 url
                 if not best_video_url and 'url' in result:
                     best_video_url = result['url']
-                    self.plugin.logger.error(f"使用默认URL: {best_video_url}")
+                    logger.info(f"使用默认URL: {best_video_url}")
                 
                 # 构建回复消息
                 response_parts = []
@@ -228,7 +231,7 @@ class DefaultEventListener(EventListener):
                 
                 if best_video_url:
                     response_parts.append(platform_message.Plain(text=f"🔗 最清晰视频链接：\n{best_video_url}"))
-                    self.plugin.logger.error(f"准备发送链接: {best_video_url}")
+                    logger.info(f"准备发送链接: {best_video_url}")
                 else:
                     response_parts.append(platform_message.Plain(text="未能提取到视频链接"))
                 
@@ -243,7 +246,7 @@ class DefaultEventListener(EventListener):
                 )
                 
         except Exception as e:
-            self.plugin.logger.error(f"抖音解析失败：{str(e)}")
+            logger.error(f"抖音解析失败：{str(e)}")
             await event_context.reply(
                 platform_message.MessageChain([
                     platform_message.Plain(text=f"解析失败：{str(e)}")
