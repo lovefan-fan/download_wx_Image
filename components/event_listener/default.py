@@ -199,20 +199,27 @@ class DefaultEventListener(EventListener):
             
             # 解析抖音视频
             result = parse_video_url(dy_url)
+            self.plugin.logger.error(f"解析结果: {result}")
             
             if 'title' in result:
                 # 提取最清晰的视频链接
                 best_video_url = None
+                
+                # 尝试从 videos 数组中提取
                 if 'videos' in result and len(result['videos']) > 0:
-                    videos = result['videos'][0].get('video_fullinfo', [])
-                    if videos:
+                    video_data = result['videos'][0]
+                    if 'video_fullinfo' in video_data and len(video_data['video_fullinfo']) > 0:
+                        videos = video_data['video_fullinfo']
                         # 按类型优先级选择：超高清 > 720p > 540p
                         quality_priority = {'超高清': 1, '720p': 2, '540p': 3}
                         best_video = min(videos, key=lambda v: quality_priority.get(v.get('type', ''), 999))
                         best_video_url = best_video.get('url')
+                        self.plugin.logger.error(f"提取到视频链接: {best_video_url}")
                 
+                # 如果没有找到 video_fullinfo，使用默认 url
                 if not best_video_url and 'url' in result:
                     best_video_url = result['url']
+                    self.plugin.logger.error(f"使用默认URL: {best_video_url}")
                 
                 # 构建回复消息
                 response_parts = []
@@ -221,6 +228,9 @@ class DefaultEventListener(EventListener):
                 
                 if best_video_url:
                     response_parts.append(platform_message.Plain(text=f"🔗 最清晰视频链接：\n{best_video_url}"))
+                    self.plugin.logger.error(f"准备发送链接: {best_video_url}")
+                else:
+                    response_parts.append(platform_message.Plain(text="未能提取到视频链接"))
                 
                 await event_context.reply(
                     platform_message.MessageChain(response_parts)
