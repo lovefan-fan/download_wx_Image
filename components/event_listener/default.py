@@ -22,6 +22,9 @@ if project_root not in os.path.sys.path:
     os.path.sys.path.insert(0, project_root)
 
 from . import message_processor
+import sys
+sys.path.insert(0, project_root)
+from douyin_parser import parse_video_url, extract_url
 
 
 class DefaultEventListener(EventListener):
@@ -75,6 +78,12 @@ class DefaultEventListener(EventListener):
         if msg.startswith("/img"):
             event_context.prevent_default()
             await self.handle_img_command(event_context, target_id, msg)
+            return
+
+        # /dy 命令 - 抖音视频解析
+        if msg.startswith("/dy"):
+            event_context.prevent_default()
+            await self.handle_douyin_command(event_context, target_id, msg)
             return
 
         # /id 命令
@@ -166,5 +175,67 @@ class DefaultEventListener(EventListener):
             await event_context.reply(
                 platform_message.MessageChain([
                     platform_message.Plain(text=f"处理失败：{str(e)}")
+                ])
+            )
+
+    async def handle_douyin_command(self, event_context: context.EventContext, target_id: str, msg: str):
+        """处理抖音视频解析命令"""
+        # 提取URL
+        dy_url = extract_url(msg)
+        if not dy_url:
+            await event_context.reply(
+                platform_message.MessageChain([
+                    platform_message.Plain(text="请提供有效的抖音链接，格式：/dy 链接")
+                ])
+            )
+            return
+        
+        try:
+            await event_context.reply(
+                platform_message.MessageChain([
+                    platform_message.Plain(text="正在解析抖音视频，请稍候...")
+                ])
+            )
+            
+            # 解析抖音视频
+            result = parse_video_url(dy_url)
+            
+            if 'title' in result:
+                # 提取最清晰的视频链接
+                best_video_url = None
+                if 'videos' in result and len(result['videos']) > 0:
+                    videos = result['videos'][0].get('video_fullinfo', [])
+                    if videos:
+                        # 按类型优先级选择：超高清 > 720p > 540p
+                        quality_priority = {'超高清': 1, '720p': 2, '540p': 3}
+                        best_video = min(videos, key=lambda v: quality_priority.get(v.get('type', ''), 999))
+                        best_video_url = best_video.get('url')
+                
+                if not best_video_url and 'url' in result:
+                    best_video_url = result['url']
+                
+                # 构建回复消息
+                response_parts = []
+                if result.get('title'):
+                    response_parts.append(platform_message.Plain(text=f"📹 {result['title']}\n\n"))
+                
+                if best_video_url:
+                    response_parts.append(platform_message.Plain(text=f"🔗 最清晰视频链接：\n{best_video_url}"))
+                
+                await event_context.reply(
+                    platform_message.MessageChain(response_parts)
+                )
+            else:
+                await event_context.reply(
+                    platform_message.MessageChain([
+                        platform_message.Plain(text="解析失败，未能获取视频信息")
+                    ])
+                )
+                
+        except Exception as e:
+            self.plugin.logger.error(f"抖音解析失败：{str(e)}")
+            await event_context.reply(
+                platform_message.MessageChain([
+                    platform_message.Plain(text=f"解析失败：{str(e)}")
                 ])
             )
