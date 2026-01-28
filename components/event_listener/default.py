@@ -226,9 +226,6 @@ class DefaultEventListener(EventListener):
                 
                 # 构建回复消息
                 response_parts = []
-                if result.get('title'):
-                    response_parts.append(platform_message.Plain(text=f"📹 {result['title']}\n\n"))
-                
                 if best_video_url:
                     response_parts.append(platform_message.Plain(text=f"🔗 最清晰视频链接：\n{best_video_url}"))
                     logger.info(f"准备发送链接: {best_video_url}")
