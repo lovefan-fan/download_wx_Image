@@ -214,8 +214,13 @@ class DefaultEventListener(EventListener):
                     if 'video_fullinfo' in video_data and len(video_data['video_fullinfo']) > 0:
                         videos = video_data['video_fullinfo']
                         # 按类型优先级选择：超高清 > 720p > 540p
-                        quality_priority = {'超高清': 1, '720p': 2, '540p': 3}
-                        best_video = min(videos, key=lambda v: quality_priority.get(v.get('type', ''), 999))
+                        best_video = max(
+                            videos,
+                            key=lambda v: (
+                                int(v.get('size') or 0),
+                                str(v.get('type') or '')
+                            )
+                        )
                         best_video_url = best_video.get('url')
                         logger.info(f"提取到视频链接: {best_video_url}")
                 
